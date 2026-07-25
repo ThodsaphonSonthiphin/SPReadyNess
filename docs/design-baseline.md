@@ -54,7 +54,10 @@ Connect IQ font constants only — no pixel sizes, since the system picks the fa
 ## Components
 
 - **Score arc** — 270° arc, opens at the bottom, filled clockwise in the band
-  colour over the `Track` neutral.
+  colour over the `Track` neutral. Two variants:
+  - **Solid** — a Morning Score. The authoritative daily number.
+  - **Dashed** — a Now Score. Same geometry and band colour, dashed stroke, so a
+    live reading can never be mistaken for the morning's at a glance (ADR 0010).
 - **Component dial** — small ring with the Component Score centred and a caption
   beneath. Ring fills proportionally in that component's own band colour.
 - **Gradient bar** — horizontal red→green strip with a white position marker at the
@@ -62,8 +65,23 @@ Connect IQ font constants only — no pixel sizes, since the system picks the fa
 - **Chart** — line with gradient fill beneath, `Secondary text` axis labels, and a
   **break in the line** wherever a Daily Record is missing.
 
+## The uncoloured state
+
+A score is drawn in `Secondary text` grey instead of its Status Band colour whenever
+the app cannot stand behind it as advice:
+
+| Condition | Why |
+|---|---|
+| Stale — no Daily Record for today (ADR 0009) | the number is a record, not today's advice |
+| RHR absent, so the override could not run (ADR 0005) | the safety check did not happen |
+
+In both cases the number is still shown, accompanied by its age or reason. Colour is
+what carries the recommendation in this design, so withholding colour is how the app
+says "here is the figure, but do not act on it."
+
 ## Rules
 
 - Never plot a missing day as zero; break the line (ADR 0006).
-- Every score shown anywhere is coloured by its band — colour is never decorative.
+- A score is coloured by its band **unless** it is in the uncoloured state above.
+  Colour is never decorative and never appears on a number the app cannot vouch for.
 - No screen scrolls; each is a fixed page reached by UP/DOWN.

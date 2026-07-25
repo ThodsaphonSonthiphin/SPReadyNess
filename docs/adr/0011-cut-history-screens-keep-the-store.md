@@ -44,3 +44,14 @@ opens already populated; dropping it would mean starting from zero on that day.
   chart screen exists to draw it.
 - The five-screen mockup is now partly ahead of the design: screens 3–5 are
   deferred, and the Now Score screen it does not yet show is in scope.
+
+## The store must not be shipped untested
+
+Cutting the screens leaves the store with **no reader in v1** — nothing but ADR 0009's
+stale-check, which touches only the most recent record. A defect in the write or
+eviction path would therefore go undetected for months, silently corrupting the one
+asset that cannot be rebuilt. That would defeat the entire reason for keeping it.
+
+v1 must therefore include **unit tests over the Daily Record store**: write, read
+back, the 120-record eviction boundary, and the no-record-for-today case. This is the
+condition on which keeping an unread store is justified.

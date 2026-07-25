@@ -29,10 +29,23 @@ Zero hours outstanding means fully recovered and maps to a Component Score of
 **100**. Only a genuine `null` counts as absent. Conflating the two would penalise
 every rest day — exactly inverting the intended meaning.
 
+## The override cannot fire without RHR
+
+When RHR is absent, ADR 0004's safety override is **inoperative** — it is defined
+entirely in terms of the deviation from the RHR Baseline, and there is no deviation
+to measure. This is correct rather than a gap: an override that fired on absent data
+would be inventing a verdict. But it means the design's one safety mechanism is
+silently missing on those days.
+
+Because it is silent, an RHR-less Readiness Score is **marked the same way a stale
+score is** (ADR 0009): the number is shown, but without its Status Band colour, so it
+never carries advice the app could not actually check.
+
 ## Consequences
 
 - With Recovery absent, weights renormalise to Body Battery 71% / RHR 29%.
-- With RHR absent, they renormalise to Body Battery 63% / Recovery 37%.
+- With RHR absent, they renormalise to Body Battery 63% / Recovery 37%, **and** the
+  override does not run, so the score is shown uncoloured.
 - With Body Battery absent, **no Daily Record is written** and the day is a gap in
   the history screens. The app should say why — an unworn watch is a user-fixable
   cause, and silence would read as a bug.

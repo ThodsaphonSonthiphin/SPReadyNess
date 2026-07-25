@@ -41,6 +41,22 @@ thresholds, and the three weights — are **starting values chosen for plausibil
 not derived from data**. They are expected to be tuned once real Daily Records
 exist, and should live as named constants rather than inline literals.
 
+## Two unverified assumptions the thresholds rest on
+
+Both concern resting heart rate, and both were checked against Garmin's documentation
+without resolution:
+
+1. **`averageRestingHeartRate` window.** Assumed to be a multi-day baseline. If it is
+   in fact very short, the +7 and +12 thresholds compare today against something too
+   close to today, and the override would rarely fire.
+2. **`restingHeartRate` freshness.** Assumed to reflect the night just ended. If it
+   lags by a day, the override fires a day late — an illness signal arriving the
+   morning *after* the one that mattered.
+
+Neither is resolvable from the docs. Both should be confirmed empirically against a
+real device before the constants are tuned, and until then the override should be
+treated as directionally right rather than precisely calibrated.
+
 ## Consequences
 
 The override means the Readiness Score is not a pure function of the three

@@ -17,8 +17,18 @@ flowchart TD
 ```
 
 A Morning Score is twelve hours stale by an evening session, so the app computes a
-**Now Score** on demand: all three inputs re-read from current values at the moment
-the wearer asks.
+**Now Score** on demand at the moment the wearer asks.
+
+## Only two of the three inputs actually change
+
+`restingHeartRate` is a **daily** value derived from overnight data — a profile
+field, not a sensor read — so it cannot differ between the morning Capture and an
+evening Now Score. The Now Score therefore re-reads **Body Battery and
+`timeToRecovery`**; RHR is carried over unchanged from the same daily value the
+Morning Score used.
+
+This sharpens what the Now Score is. It is not "live data disagreeing with the
+morning" — it is exactly two inputs moving, one of which moves by the clock.
 
 ## The accepted tradeoff
 

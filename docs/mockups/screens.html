@@ -86,9 +86,9 @@
 
 <div class="wrap">
 <header>
-  <p class="eyebrow">SPReadyNess · design mockup · rev 2</p>
+  <p class="eyebrow">SPReadyNess · design mockup · rev 3</p>
   <h1>Three screens ship. Three are deferred.</h1>
-  <p class="lede">Rendered from <code>docs/design-baseline.md</code> and ADRs 0001–0011.
+  <p class="lede">Rendered from <code>docs/design-baseline.md</code> and ADRs 0001–0014.
      Every number satisfies the agreed formula — this is the design under test, not an
      illustration.</p>
   <div class="specs">
@@ -214,6 +214,69 @@
 
 </div>
 
+<div style="margin-top:56px"></div>
+<div class="sect"><h2>The uncoloured state</h2><span class="tag">2 surfaces</span><span class="rule"></span></div>
+<p style="margin:0 0 24px;color:var(--muted);max-width:62ch;font-size:14px">
+  Colour carries the recommendation in this design, so a score the app cannot vouch for
+  is shown <strong>without</strong> it. Two conditions trigger this: no Daily Record for
+  today (ADR 0009), or RHR absent so the safety override never ran (ADR 0005). The
+  treatment is identical in both cases — only the caption differs.</p>
+
+<div class="grid">
+
+  <div class="card">
+    <div class="card-head"><span class="num">01·s</span><h3>Glance — stale</h3></div>
+    <svg class="screen" viewBox="0 0 390 390" role="img" aria-label="Stale glance card, score 84 from two days ago, shown uncoloured">
+      <text x="195" y="150" fill="#fff" font-size="30" text-anchor="middle">Readiness</text>
+      <text x="128" y="205" fill="#9E9E9E" font-size="30" text-anchor="middle">2 days ago</text>
+      <text x="290" y="208" fill="#9E9E9E" font-size="46" text-anchor="middle">84</text>
+      <rect x="85" y="232" width="220" height="17" rx="3" fill="#2A2A2C"/>
+      <rect x="270" y="227" width="4" height="27" fill="#9E9E9E"/>
+    </svg>
+    <p>Same number, same position on the bar — but grey, and captioned with its age
+       instead of its band.</p>
+    <div class="note off">The bar itself desaturates too. A red→green gradient is advice.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="num">02·s</span><h3>Morning Score — stale</h3></div>
+    <svg class="screen" viewBox="0 0 390 390" role="img" aria-label="Stale morning score 84 from two days ago, shown uncoloured">
+      <circle cx="195" cy="195" r="150" fill="none" stroke="#262628" stroke-width="13"
+              stroke-linecap="round" stroke-dasharray="706.9 942.5" transform="rotate(135 195 195)"/>
+      <circle cx="195" cy="195" r="150" fill="none" stroke="#9E9E9E" stroke-width="13"
+              stroke-linecap="round" stroke-dasharray="593.8 942.5" transform="rotate(135 195 195)"/>
+      <text x="195" y="128" fill="#9E9E9E" font-size="27" text-anchor="middle">2 DAYS AGO</text>
+      <text x="195" y="205" fill="#9E9E9E" font-size="76" text-anchor="middle">84</text>
+      <g>
+        <circle cx="112" cy="268" r="31" fill="none" stroke="#262628" stroke-width="7"/>
+        <circle cx="112" cy="268" r="31" fill="none" stroke="#6E6E6E" stroke-width="7"
+                stroke-linecap="round" stroke-dasharray="171.4 194.8" transform="rotate(-90 112 268)"/>
+        <text x="112" y="277" fill="#9E9E9E" font-size="25" text-anchor="middle">88</text>
+        <text x="112" y="322" fill="#6E6E6E" font-size="19" text-anchor="middle">Body</text>
+      </g>
+      <g>
+        <circle cx="195" cy="268" r="31" fill="none" stroke="#262628" stroke-width="7"/>
+        <circle cx="195" cy="268" r="31" fill="none" stroke="#6E6E6E" stroke-width="7"
+                stroke-linecap="round" stroke-dasharray="142.2 194.8" transform="rotate(-90 195 268)"/>
+        <text x="195" y="277" fill="#9E9E9E" font-size="25" text-anchor="middle">73</text>
+        <text x="195" y="322" fill="#6E6E6E" font-size="19" text-anchor="middle">Recov.</text>
+      </g>
+      <g>
+        <circle cx="278" cy="268" r="31" fill="none" stroke="#262628" stroke-width="7"/>
+        <circle cx="278" cy="268" r="31" fill="none" stroke="#6E6E6E" stroke-width="7"
+                stroke-linecap="round" stroke-dasharray="173.4 194.8" transform="rotate(-90 278 268)"/>
+        <text x="278" y="277" fill="#9E9E9E" font-size="25" text-anchor="middle">89</text>
+        <text x="278" y="322" fill="#6E6E6E" font-size="19" text-anchor="middle">RHR</text>
+      </g>
+    </svg>
+    <p>The band label is replaced by the age. Compare with screen 02 — identical
+       figures, no green anywhere.</p>
+    <div class="note off">For the RHR-absent case the caption reads
+       <code>NO RHR — UNCHECKED</code> instead of an age. Same grey.</div>
+  </div>
+
+</div>
+
 <div class="deferred">
   <div class="sect"><h2>Deferred — data still collected</h2><span class="tag">3 screens</span><span class="rule"></span></div>
 
@@ -331,19 +394,26 @@
 </div>
 
 <div class="callout">
-  <h2>What changed in rev 2</h2>
+  <h2>What changed in rev 3 — after scrutiny</h2>
   <ul>
-    <li><strong>Now Score added</strong> (screen 03) — live recompute before a session,
-        per ADR 0010. Marked <code>NOW</code> with a timestamp and a dashed arc so it is
-        never confused with the Morning Score.</li>
-    <li><strong>Three history screens deferred</strong> per ADR 0011, superseding ADR 0007.
-        The Capture and the 120-record store are unchanged.</li>
-    <li><strong>The evening drop is shown honestly.</strong> Screens 02 and 03 are the same
-        day: 84 in the morning, 68 at 18:04. Body Battery fell 88 → 45 by the clock while
-        Recovery actually improved 73 → 92. That gap is the cost of a live recompute.</li>
-    <li><strong>Still unverified</strong> — background memory ceiling,
-        <code>Application.Storage</code> limit, and the averaging window behind
-        <code>averageRestingHeartRate</code>. To be checked against the SDK, not assumed.</li>
+    <li><strong>The uncoloured state is now drawn</strong> (01·s, 02·s). A review found
+        ADR 0009 mandated a second visual state on every score-bearing surface that no
+        mockup had ever shown — the state most likely to ship wrong was the one nobody
+        had looked at.</li>
+    <li><strong>The dashed Now arc is now in the baseline.</strong> Rev 2 invented it here
+        without documenting it in <code>design-baseline.md</code> — exactly the mockup-vs-build
+        drift the baseline exists to prevent.</li>
+    <li><strong>Now Score reads two inputs, not three.</strong> <code>restingHeartRate</code>
+        is a daily profile value and cannot change intraday, so screens 02 and 03 necessarily
+        share an RHR of 89. The evening drop is Body Battery and Recovery alone.</li>
+    <li><strong>Capture mechanism defined</strong> — a guarded 30-minute Duration event
+        (ADR 0012), with Body Battery resolved back to <code>wakeTime</code> rather than read
+        at firing (ADR 0013), so the 50%-weighted input is not biased by how late the
+        event happened to run.</li>
+    <li><strong>Still unverified</strong> — background memory ceiling and the
+        <code>Application.Storage</code> limit. The <code>averageRestingHeartRate</code> window
+        and <code>restingHeartRate</code> freshness remain assumptions, now recorded as such
+        in ADR 0004 rather than left loose.</li>
   </ul>
 </div>
 </div>
