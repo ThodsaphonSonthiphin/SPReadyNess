@@ -1,4 +1,13 @@
+---
+status: superseded by ADR-0011
+---
+
 # All five screens ship in v1
+
+> **Superseded.** The three history screens were cut in
+> [ADR-0011](./0011-cut-history-screens-keep-the-store.md); the Capture and the
+> 120-record store were kept. The reasoning below is retained as the record of why
+> all five were originally in scope.
 
 ```mermaid
 flowchart TD

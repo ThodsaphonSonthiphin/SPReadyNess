@@ -15,6 +15,12 @@ The Readiness Score as captured once for a given day. This is the only Readiness
 Score that exists for that day — it does not change as the day goes on.
 _Avoid_: daily score, today's score, snapshot
 
+**Now Score**:
+A Readiness Score computed on demand from current sensor values, for deciding
+whether to train at this moment. Distinct from the Morning Score, never stored,
+and expected to read lower later in the day.
+_Avoid_: live score, current score, instant readiness
+
 **Status Band**:
 The named range a Readiness Score falls into, which drives the label and colour
 shown on screen: GO HARD, READY, GO EASY, REST.
