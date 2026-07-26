@@ -211,7 +211,7 @@ git commit -m "feat: connect iq project skeleton with passing smoke test"
 - Create: `source/Constants.mc`, `source/score/StatusBand.mc`, `tests/StatusBandTest.mc`
 
 **Interfaces:**
-- Produces: `Constants.WEIGHT_BODY/WEIGHT_RECOVERY/WEIGHT_RHR` (Float), `Constants.RECOVERY_FULL_HOURS`, `Constants.RHR_SLOPE`, `Constants.RHR_CAP_EASY_BPM`, `Constants.RHR_CAP_REST_BPM`, `Constants.MAX_RECORDS`, `Constants.CAP_EASY_CEILING`, `Constants.CAP_REST_CEILING` (all Number); `StatusBand.of(score as Lang.Number) as Lang.Number` returning `StatusBand.GO_HARD|READY|GO_EASY|REST`; `StatusBand.colourOf(band as Lang.Number) as Lang.Number`; `StatusBand.nameOf(band as Lang.Number) as Lang.String`
+- Produces: `Constants.WEIGHT_BODY/WEIGHT_RECOVERY/WEIGHT_RHR`, `Constants.RECOVERY_FULL_HOURS`, `Constants.RHR_SLOPE`, `Constants.RHR_CAP_EASY_BPM`, `Constants.RHR_CAP_REST_BPM`, `Constants.MAX_RECORDS`, `Constants.CAP_EASY_CEILING`, `Constants.CAP_REST_CEILING` — **all `Lang.Number`, never Float**. The weights are integer numerators over their runtime sum; a Float anywhere in that path silently reintroduces the tie-rounding bug. `StatusBand.of(score as Lang.Number) as Lang.Number` returning `StatusBand.GO_HARD|READY|GO_EASY|REST`; `StatusBand.colourOf(band as Lang.Number) as Lang.Number`; `StatusBand.nameOf(band as Lang.Number) as Lang.String`
 
 - [ ] **Step 1: Write the failing test**
 
