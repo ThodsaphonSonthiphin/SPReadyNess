@@ -48,18 +48,31 @@ module Draw {
         y as Lang.Number,
         value as Lang.Number?,
         colour as Lang.Number,
+        trackColour as Lang.Number,
         caption as Lang.String
     ) as Void {
         dc.setPenWidth(Theme.DIAL_WIDTH);
 
-        dc.setColor(Theme.DIM_TRACK, Graphics.COLOR_TRANSPARENT);
+        // The caller chooses the track: Theme.TRACK in live states,
+        // Theme.DIM_TRACK in the uncoloured and empty ones.
+        dc.setColor(trackColour, Graphics.COLOR_TRANSPARENT);
         dc.drawCircle(x, y, Theme.DIAL_RADIUS);
 
-        if (value != null) {
+        // Guard the degenerate arc exactly as scoreArc does. A start angle
+        // equal to its end angle is not reliably "draw nothing" in Connect
+        // IQ — it can render a FULL circle, which would paint a Component
+        // Score of 0 as a completely filled ring. Zero is reachable on real
+        // mornings: 48+ hours of recovery outstanding, or RHR 12+ bpm above
+        // baseline. Those are exactly the days a full ring misleads most.
+        if (value != null && value > 0) {
             dc.setColor(colour, Graphics.COLOR_TRANSPARENT);
             dc.drawArc(x, y, Theme.DIAL_RADIUS, Graphics.ARC_CLOCKWISE,
                        90, 90 - (360 * value / 100));
+        }
 
+        // A Component Score of 0 still shows its number — only the ring fill
+        // is suppressed. Absent (null) shows neither.
+        if (value != null) {
             dc.setColor(Theme.PRIMARY_TEXT, Graphics.COLOR_TRANSPARENT);
             dc.drawText(x, y - 14, Graphics.FONT_SMALL, value.toString(),
                         Graphics.TEXT_JUSTIFY_CENTER);
