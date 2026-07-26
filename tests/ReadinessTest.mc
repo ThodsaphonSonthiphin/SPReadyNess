@@ -20,19 +20,22 @@ function noBodyBatteryMeansNoScore(logger as Test.Logger) as Lang.Boolean {
 
 (:test)
 function missingRecoveryRenormalises(logger as Test.Logger) as Lang.Boolean {
-    // weights become 50/70 and 20/70
+    // Weights become 50/70 and 20/70.
+    // (80*0.5 + 60*0.2) / 0.7 = 52 / 0.7 = 74.285... -> 74
+    // The expected value is a LITERAL. Recomputing it with the same
+    // arithmetic the implementation uses would make this test tautological:
+    // it would pass even if the formula were wrong.
     var r = Readiness.compute(80, null, 60, 0);
-    var expected = (80 * 50.0 / 70.0) + (60 * 20.0 / 70.0); // 57.14 + 17.14 = 74.28
-    Test.assertEqualMessage(r[:score], expected.toNumber(), "renormalised to 50/70 and 20/70");
+    Test.assertEqualMessage(r[:score], 74, "renormalised to 50/70 and 20/70");
     return true;
 }
 
 (:test)
 function missingRhrRenormalisesAndDisablesOverride(logger as Test.Logger) as Lang.Boolean {
-    // weights become 50/80 and 30/80; override cannot run
+    // Weights become 50/80 and 30/80; override cannot run.
+    // (80*0.5 + 60*0.3) / 0.8 = 58 / 0.8 = 72.5 -> 73 (rounds up, not 72)
     var r = Readiness.compute(80, 60, null, null);
-    var expected = (80 * 50.0 / 80.0) + (60 * 30.0 / 80.0); // 50 + 22.5 = 72.5
-    Test.assertEqualMessage(r[:score], expected.toNumber(), "renormalised to 50/80 and 30/80");
+    Test.assertEqualMessage(r[:score], 73, "renormalised to 50/80 and 30/80");
     Test.assertEqualMessage(r[:rhrChecked], false, "override could not run");
     Test.assertEqualMessage(r[:overrideFired], false, "override did not fire");
     return true;

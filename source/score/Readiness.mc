@@ -24,7 +24,12 @@ module Readiness {
         if (recovery != null) { sum += recovery * wRecovery; }
         if (rhr != null)      { sum += rhr * wRhr; }
 
-        var score = (sum / total).toNumber();
+        // Round, do not truncate. Monkey C's .toNumber() truncates toward
+        // zero, which would turn the spec's 83.7 into 83 and bias every
+        // score down by up to a point — worst exactly at a band boundary,
+        // where 79.9 would read READY instead of GO HARD. All scores are
+        // non-negative, so +0.5 then truncate is exact rounding here.
+        var score = (sum / total + 0.5).toNumber();
 
         // The override is a tripwire, not a slider (ADR 0004). It can only
         // lower a score, and only when RHR was actually measured (ADR 0005).
