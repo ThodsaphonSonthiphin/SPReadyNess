@@ -26,6 +26,15 @@ module Sensors {
 
         var wakeMoment = Time.today().add(profile.wakeTime);
 
+        // Decline outright before today's wake — same fix as todaysRhr()
+        // below (see its comment for the full trace). Capture.run() fires
+        // every CAPTURE_INTERVAL_MINUTES all night; before wake, this walked
+        // the ENTIRE Body Battery buffer on every firing, since no sample can
+        // be later than a future wakeMoment, so the loop below never found a
+        // match and exhausted the iterator instead. Nothing observable
+        // changes: a pre-wake capture can't write a record anyway.
+        if (wakeMoment.greaterThan(Time.now())) { return null; }
+
         // ORDER_OLDEST_FIRST is load-bearing, not stylistic. The walk below
         // returns the FIRST sample at or after wake. Garmin's default is
         // ORDER_NEWEST_FIRST, under which the very first sample is "now" —
