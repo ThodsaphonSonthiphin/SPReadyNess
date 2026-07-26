@@ -38,7 +38,8 @@ boundary genuinely sits near a boundary.
 |---|---|---|
 | Primary text | `#FFFFFF` | headline numbers, band label |
 | Secondary text | `#9E9E9E` | axis labels, dial captions, dates |
-| Track | `#3A3A3C` | unfilled portion of any arc or ring |
+| Track | `#3A3A3C` | unfilled portion of any arc or ring, live states |
+| Dim track | `#262628` | the same, in the uncoloured and empty states |
 
 ## Type
 
