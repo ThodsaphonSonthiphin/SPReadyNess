@@ -54,11 +54,17 @@ class SPReadyNessGlanceView extends WatchUi.GlanceView {
         if (current) {
             label = StatusBand.nameOf(StatusBand.of(record[:score]));
         } else if (state[:kind] == DisplayState.UNCHECKED) {
-            label = WatchUi.loadResource(Rez.Strings.NoRhrShort) as Lang.String;
+            // Literal, not WatchUi.loadResource(Rez.Strings.*): confirmed on a
+            // real device (CIQ_LOG.YAML) that (:glance)-scoped code cannot
+            // access the generated Rez symbol at all — "Illegal Access (Out
+            // of Bounds): Could not access symbol 'Rez'", crashing the glance
+            // outright. Matches the EMPTY branch above, which already avoided
+            // Rez for the same reason.
+            label = "No RHR";
         } else if (state[:ageDays] <= 0) {
             // Reachable when a timezone crossing leaves a future-dated
             // record as the newest (ADR 0006).
-            label = WatchUi.loadResource(Rez.Strings.NotToday) as Lang.String;
+            label = "NOT TODAY";
         } else if (state[:ageDays] == 1) {
             label = "1d ago";
         } else {

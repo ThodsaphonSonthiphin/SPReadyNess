@@ -38,10 +38,18 @@ its own dial. There are three: Body Battery, Recovery, and Resting Heart Rate.
 _Avoid_: sub-score, factor, metric, dial
 
 **RHR Baseline**:
-The wearer's own multi-day average resting heart rate, which today's resting heart
-rate is measured against. Read from `Profile.averageRestingHeartRate` rather than
-computed by the app.
+The wearer's own multi-day average resting heart rate, which Today's RHR is
+measured against. Read from `Profile.averageRestingHeartRate` — confirmed
+reliable on real hardware (ADR 0017, rejected) even though `restingHeartRate`
+itself is not.
 _Avoid_: average RHR, 7-day average, normal RHR
+
+**Today's RHR**:
+The minimum heart-rate sensor sample between local midnight and wake time (ADR
+0016), used as the day's resting heart rate reading. Derived by the app from raw
+`SensorHistory` samples — `Profile.restingHeartRate` was confirmed unreliable on
+real hardware (stays null indefinitely for most users).
+_Avoid_: current RHR, live RHR, HR reading, `restingHeartRate`
 
 **Capture**:
 The once-daily act of reading the inputs and writing the Daily Record, performed
