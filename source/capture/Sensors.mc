@@ -6,8 +6,10 @@ using Toybox.Time;
 using Toybox.UserProfile;
 
 // Background only. Capture reads hardware here. NowView also calls
-// bodyBatteryNow() and rhr(), but NowView lives in the app scope, which is
-// not one of the excluded ones.
+// bodyBatteryNow(), recoveryHours() and rhrBaseline() — it no longer reads
+// today's RHR live, taking it from the stored DailyRecord instead (ADR 0018)
+// — but NowView lives in the app scope, which is not one of the excluded
+// ones.
 (:background)
 module Sensors {
 
@@ -104,6 +106,27 @@ module Sensors {
 
         var wakeMoment = Time.today().add(profile.wakeTime);
 
+        // Decline outright before today's wake — the one state in which the
+        // early break below cannot bound the walk at all. Capture.run() fires
+        // every CAPTURE_INTERVAL_MINUTES all night, and its hasRecordFor()
+        // guard cannot short-circuit until the day's first successful
+        // capture, which cannot happen before wake (bodyBatteryAtWake()
+        // returns null until then, and Readiness.compute() refuses to score
+        // without Body Battery). So this ran on every overnight firing with
+        // wakeMoment set to a FUTURE timestamp: no sample can be later than a
+        // future moment, the break never fired, and the walk covered the
+        // ENTIRE buffer every half hour — the same unbounded walk described
+        // above, back through a different door.
+        //
+        // Clamping the comparison to Time.now() would not bound it either:
+        // every buffered sample is already in the past, so a now-bounded walk
+        // is still the whole buffer. Only declining to walk bounds it — and
+        // declining is the honest answer anyway, since "today's RHR" is the
+        // minimum at or before today's wake and before wake that window has
+        // not closed. Nothing observable changes: a pre-wake capture could
+        // never write a record, so this value was already being discarded.
+        if (wakeMoment.greaterThan(Time.now())) { return null; }
+
         var iter = SensorHistory.getHeartRateHistory({
             :order => SensorHistory.ORDER_OLDEST_FIRST
         });
@@ -112,7 +135,21 @@ module Sensors {
         var min = null;
         var sample = iter.next();
         while (sample != null && !sample.when.greaterThan(wakeMoment)) {
-            if (sample.data != null && (min == null || sample.data < min)) {
+            // Samples below RHR_FLOOR_BPM are dropped like nulls rather than
+            // allowed to compete for the minimum. A minimum is the most
+            // outlier-sensitive statistic there is, and one artifact — a loose
+            // strap reporting 0, or 35 — does not merely skew the score, it
+            // INVERTS the intended failure mode. Traced end to end: with a
+            // baseline of 52, Components.fromRhr(35, 52) sees delta -17 <= 0
+            // and returns a perfect 100, while Readiness.compute() marks the
+            // day rhrChecked yet fires neither the illness nor the
+            // overreaching override, as both need a POSITIVE delta. The app
+            // would confidently vouch for a possibly-ill wearer with the
+            // safety tripwire disarmed. Skipping the sample instead fails
+            // toward a missing RHR and an UNCHECKED day, which is the honest
+            // direction to fail in.
+            if (sample.data != null && sample.data >= Constants.RHR_FLOOR_BPM
+                    && (min == null || sample.data < min)) {
                 min = sample.data;
             }
             sample = iter.next();

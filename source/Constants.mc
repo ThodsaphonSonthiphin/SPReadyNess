@@ -23,6 +23,12 @@ module Constants {
     const CAP_EASY_CEILING  = 59;
     const CAP_REST_CEILING  = 39;
 
+    // RHR sensor sanity floor (ADR 0016). Genuine human resting heart rate
+    // essentially never goes below this, even for elite athletes — a sample
+    // under it is a sensor artifact, not physiology. See Sensors.todaysRhr(),
+    // which takes a MINIMUM and so is maximally outlier-sensitive.
+    const RHR_FLOOR_BPM = 30;
+
     // Store (ADR 0006)
     const MAX_RECORDS   = 120;
     const STORAGE_KEY   = "records";

@@ -45,10 +45,11 @@ itself is not.
 _Avoid_: average RHR, 7-day average, normal RHR
 
 **Today's RHR**:
-The minimum heart-rate sensor sample between local midnight and wake time (ADR
-0016), used as the day's resting heart rate reading. Derived by the app from raw
-`SensorHistory` samples — `Profile.restingHeartRate` was confirmed unreliable on
-real hardware (stays null indefinitely for most users).
+The minimum heart-rate sensor sample at or before wake time, over whatever
+history the sensor buffer holds — deliberately not floored at local midnight
+(ADR 0016). Used as the day's resting heart rate reading. Derived by the app
+from raw `SensorHistory` samples — `Profile.restingHeartRate` was confirmed
+unreliable on real hardware (stays null indefinitely for most users).
 _Avoid_: current RHR, live RHR, HR reading, `restingHeartRate`
 
 **Capture**:
