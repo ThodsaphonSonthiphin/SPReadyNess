@@ -1223,6 +1223,24 @@ function olderRecordIsStaleWithAge(logger as Test.Logger) as Lang.Boolean {
 }
 
 (:test)
+function ageCrossesMonthAndYearBoundaries(logger as Test.Logger) as Lang.Boolean {
+    // A month is not 30 days. 1 March is ONE day after 28 February in a
+    // non-leap year, and 1 January is ONE day after 31 December.
+    var feb = DailyRecord.make(20260228, 84, 88, 73, 89, false);
+    Test.assertEqualMessage(DisplayState.forRecord(feb, 20260301)[:ageDays], 1,
+        "28 Feb to 1 Mar is one day");
+
+    var dec = DailyRecord.make(20251231, 84, 88, 73, 89, false);
+    Test.assertEqualMessage(DisplayState.forRecord(dec, 20260101)[:ageDays], 1,
+        "31 Dec to 1 Jan is one day");
+
+    var leap = DailyRecord.make(20240228, 84, 88, 73, 89, false);
+    Test.assertEqualMessage(DisplayState.forRecord(leap, 20240301)[:ageDays], 2,
+        "2024 is a leap year, so 28 Feb to 1 Mar is two days");
+    return true;
+}
+
+(:test)
 function todaysRecordWithoutRhrIsUnchecked(logger as Test.Logger) as Lang.Boolean {
     // ADR 0005: the override could not run, so the score carries no colour
     var record = DailyRecord.make(20260726, 72, 80, 60, null, false);
@@ -1243,6 +1261,8 @@ Create `source/ui/DisplayState.mc`:
 
 ```monkeyc
 using Toybox.Lang;
+using Toybox.Time;
+using Toybox.Time.Gregorian;
 
 module DisplayState {
     enum {
@@ -1252,17 +1272,31 @@ module DisplayState {
         UNCHECKED = 3   // today's score but RHR absent, dimmed (ADR 0005)
     }
 
-    // Naive day-key difference. Adequate because it is only used to render
-    // "N DAYS AGO" for small N; a record older than a month simply reads as
-    // a large number, which is still true.
+    // Seconds in a day. A unit definition, not a tunable — unlike the five
+    // formula constants, this one has exactly one correct value.
+    const SECONDS_PER_DAY = 86400;
+
+    // A YYYYMMDD key back to a Moment. Gregorian.moment treats its fields as
+    // UTC, which is correct here: both sides of the subtraction use the same
+    // frame, so the offset cancels.
+    function momentFor(dayKey as Lang.Number) as Time.Moment {
+        return Gregorian.moment({
+            :year   => dayKey / 10000,
+            :month  => (dayKey / 100) % 100,
+            :day    => dayKey % 100,
+            :hour   => 0,
+            :minute => 0,
+            :second => 0
+        });
+    }
+
+    // Real calendar arithmetic, not an approximation. An earlier version
+    // treated a month as 30 days, which made 1 March against 28 February
+    // read as 3 days instead of 1 — a visible lie on the stale caption, and
+    // wrong across every month boundary and every leap year.
     function ageInDays(recordDay as Lang.Number, todayKey as Lang.Number) as Lang.Number {
-        var rd = recordDay % 100;
-        var td = todayKey % 100;
-        var rm = (recordDay / 100) % 100;
-        var tm = (todayKey / 100) % 100;
-        var ry = recordDay / 10000;
-        var ty = todayKey / 10000;
-        return (ty - ry) * 365 + (tm - rm) * 30 + (td - rd);
+        var elapsed = momentFor(todayKey).subtract(momentFor(recordDay));
+        return (elapsed.value() / SECONDS_PER_DAY).toNumber();
     }
 
     function forRecord(record as Lang.Dictionary?, todayKey as Lang.Number) as Lang.Dictionary {
