@@ -15,7 +15,10 @@ function buildsARecordFromRawInputs(logger as Test.Logger) as Lang.Boolean {
 (:test)
 function noBodyBatteryBuildsNoRecord(logger as Test.Logger) as Lang.Boolean {
     // ADR 0013: history no longer reaching wake yields null, and null means no record
-    Test.assertEqualMessage(Capture.buildRecord(null, 24, 50, 50, 20260726), null,
+    // Test.assertEqualMessage crashes when the actual value is null (SDK 9.2.0
+    // Run No Evil bug — confirmed in isolation, unrelated to app code); assert
+    // on the equality instead of handing null to it directly.
+    Test.assertMessage(Capture.buildRecord(null, 24, 50, 50, 20260726) == null,
         "no BB at wake, no record");
     return true;
 }

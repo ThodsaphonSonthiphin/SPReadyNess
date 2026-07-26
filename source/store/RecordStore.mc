@@ -8,14 +8,49 @@ using Toybox.Lang;
 (:background :glance)
 module RecordStore {
 
+    // Application.Storage.KeyType/ValueType exclude Symbol (see the SDK's own
+    // "Symbols... are not to be used for Keys or Values" note), but every
+    // record in the app is Symbol-keyed (DailyRecord.make). These two
+    // functions are the only place that boundary is crossed, so the
+    // Symbol<->String translation lives here and nowhere else has to know.
+    function toStorable(record as Lang.Dictionary) as Lang.Dictionary {
+        return {
+            "day"           => record[:day],
+            "score"         => record[:score],
+            "body"          => record[:body],
+            "recovery"      => record[:recovery],
+            "rhr"           => record[:rhr],
+            "overrideFired" => record[:overrideFired]
+        };
+    }
+
+    function fromStorable(stored as Lang.Dictionary) as Lang.Dictionary {
+        return {
+            :day           => stored["day"],
+            :score         => stored["score"],
+            :body          => stored["body"],
+            :recovery      => stored["recovery"],
+            :rhr           => stored["rhr"],
+            :overrideFired => stored["overrideFired"]
+        };
+    }
+
     function all() as Lang.Array {
         var stored = Application.Storage.getValue(Constants.STORAGE_KEY);
         if (stored == null) { return []; }
-        return stored as Lang.Array;
+        var records = [];
+        for (var i = 0; i < stored.size(); i += 1) {
+            records.add(fromStorable(stored[i]));
+        }
+        return records;
     }
 
     function save(records as Lang.Array) as Void {
-        Application.Storage.setValue(Constants.STORAGE_KEY, records);
+        var storable = [];
+        for (var i = 0; i < records.size(); i += 1) {
+            storable.add(toStorable(records[i]));
+        }
+        Application.Storage.setValue(Constants.STORAGE_KEY, storable);
     }
 
     function clear() as Void {

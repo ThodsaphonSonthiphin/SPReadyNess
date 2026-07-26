@@ -5,7 +5,9 @@ using Toybox.Lang;
 function recoveryZeroMeansFullyRecovered(logger as Test.Logger) as Lang.Boolean {
     // ADR 0005: zero hours outstanding is the BEST case, not missing data
     Test.assertEqualMessage(Components.fromRecoveryHours(0), 100, "0h = fully recovered");
-    Test.assertEqualMessage(Components.fromRecoveryHours(null), null, "null = absent");
+    // Test.assertEqualMessage crashes when the actual value is null (SDK 9.2.0
+    // Run No Evil bug); assert on the equality instead of handing null to it.
+    Test.assertMessage(Components.fromRecoveryHours(null) == null, "null = absent");
     return true;
 }
 
@@ -46,14 +48,18 @@ function rhrAtOrBelowBaselineIsPerfect(logger as Test.Logger) as Lang.Boolean {
 function rhrDeviationScales(logger as Test.Logger) as Lang.Boolean {
     Test.assertEqualMessage(Components.fromRhr(55, 50), 60, "+5bpm x8 = 100-40");
     Test.assertEqualMessage(Components.fromRhr(70, 50), 0,  "+20bpm clamps to 0");
-    Test.assertEqualMessage(Components.fromRhr(null, 50), null, "no rhr = absent");
-    Test.assertEqualMessage(Components.fromRhr(50, null), null, "no baseline = absent");
+    // Test.assertEqualMessage crashes when the actual value is null (SDK 9.2.0
+    // Run No Evil bug); assert on the equality instead of handing null to it.
+    Test.assertMessage(Components.fromRhr(null, 50) == null, "no rhr = absent");
+    Test.assertMessage(Components.fromRhr(50, null) == null, "no baseline = absent");
     return true;
 }
 
 (:test)
 function bodyBatteryPassesThrough(logger as Test.Logger) as Lang.Boolean {
     Test.assertEqual(Components.fromBodyBattery(88), 88);
-    Test.assertEqual(Components.fromBodyBattery(null), null);
+    // Test.assertEqual crashes when the actual value is null (SDK 9.2.0
+    // Run No Evil bug); assert on the equality instead of handing null to it.
+    Test.assertMessage(Components.fromBodyBattery(null) == null, "null body battery = absent");
     return true;
 }

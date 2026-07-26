@@ -14,7 +14,9 @@ function fullFormulaMatchesTheSpec(logger as Test.Logger) as Lang.Boolean {
 (:test)
 function noBodyBatteryMeansNoScore(logger as Test.Logger) as Lang.Boolean {
     // ADR 0005: Body Battery is load-bearing, not merely weighted
-    Test.assertEqualMessage(Readiness.compute(null, 73, 89, 0), null, "no BB, no score");
+    // Test.assertEqualMessage crashes when the actual value is null (SDK 9.2.0
+    // Run No Evil bug); assert on the equality instead of handing null to it.
+    Test.assertMessage(Readiness.compute(null, 73, 89, 0) == null, "no BB, no score");
     return true;
 }
 

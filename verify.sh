@@ -51,26 +51,25 @@ echo "==> Building the unit-test binary..."
 monkeyc -f "$JUNGLE" -d "$DEVICE" -o "$TEST_BIN" -y "$DEVELOPER_KEY" --unit-test
 
 echo "==> Running the unit-test suite..."
-# Do not trust the exit code alone. It is not established that monkeydo
-# returns non-zero when a test fails, and under `set -e` a zero exit on a red
-# suite would let this script print "complete" over failing tests -- turning
-# "unverified" into "falsely confirmed", which is worse than no check at all.
-# So capture the output and inspect it too. If monkeydo's format differs from
-# what this grep expects, read the output above rather than trusting the line
-# below.
-TEST_OUTPUT="$(monkeydo "$TEST_BIN" "$DEVICE" -t 2>&1)" || TEST_EXIT=$?
-TEST_EXIT="${TEST_EXIT:-0}"
+# Do not trust the exit code: confirmed empirically (SDK 9.2.0, mac) that
+# `monkeydo ... -t` exits 1 unconditionally, including on a single fully
+# passing test — the exit code carries no pass/fail signal in this SDK build.
+# So this relies entirely on parsing the PASSED/FAILED summary in the output.
+# Anchored, not a bare 'fail|error' substring match: the success summary line
+# itself is "PASSED (passed=N, failed=0, errors=0)", which contains the
+# substrings "failed" and "errors" even on a fully green run.
+TEST_OUTPUT="$(monkeydo "$TEST_BIN" "$DEVICE" -t 2>&1)" || true
 echo "$TEST_OUTPUT"
 
-if [ "$TEST_EXIT" -ne 0 ]; then
-    echo ""
-    echo "ERROR: monkeydo exited $TEST_EXIT — the test suite did not pass."
-    exit 1
-fi
-if printf '%s' "$TEST_OUTPUT" | grep -qiE 'fail|error'; then
+if printf '%s' "$TEST_OUTPUT" | grep -qE '^ERROR$|^FAILED \('; then
     echo ""
     echo "ERROR: the test output above contains a failure or error marker."
-    echo "monkeydo exited 0, so this was caught by inspecting its output."
+    exit 1
+fi
+if ! printf '%s' "$TEST_OUTPUT" | grep -qE '^PASSED \('; then
+    echo ""
+    echo "ERROR: no PASSED/FAILED summary found in monkeydo's output at all —"
+    echo "assuming the run did not complete rather than assuming success."
     exit 1
 fi
 echo "    no failure markers in the test output."

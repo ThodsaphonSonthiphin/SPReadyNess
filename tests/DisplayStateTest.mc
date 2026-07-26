@@ -6,7 +6,9 @@ function noRecordEverIsEmpty(logger as Test.Logger) as Lang.Boolean {
     // ADR 0015: distinct from stale — there is no number to dim
     var state = DisplayState.forRecord(null, 20260726);
     Test.assertEqualMessage(state[:kind], DisplayState.EMPTY, "empty, not stale");
-    Test.assertEqualMessage(state[:ageDays], null, "empty has no age to report");
+    // Test.assertEqualMessage crashes when the actual value is null (SDK 9.2.0
+    // Run No Evil bug); assert on the equality instead of handing null to it.
+    Test.assertMessage(state[:ageDays] == null, "empty has no age to report");
     return true;
 }
 
