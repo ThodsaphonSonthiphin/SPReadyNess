@@ -79,6 +79,15 @@ In both cases the number is still shown, accompanied by its age or reason. Colou
 what carries the recommendation in this design, so withholding colour is how the app
 says "here is the figure, but do not act on it."
 
+## The empty state
+
+A third state, distinct from both coloured and uncoloured: **no Daily Record has ever
+existed**. There is no number, no arc fill and no colour — only the caption
+`FIRST SCORE TOMORROW MORNING` (ADR 0015).
+
+A zero or a placeholder is forbidden here. On a 0–100 scale coloured by band, a zero
+is a legitimate REST morning, and the two must never look alike.
+
 ## Rules
 
 - Never plot a missing day as zero; break the line (ADR 0006).

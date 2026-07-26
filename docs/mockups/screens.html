@@ -86,7 +86,7 @@
 
 <div class="wrap">
 <header>
-  <p class="eyebrow">SPReadyNess · design mockup · rev 3</p>
+  <p class="eyebrow">SPReadyNess · design mockup · rev 4</p>
   <h1>Three screens ship. Three are deferred.</h1>
   <p class="lede">Rendered from <code>docs/design-baseline.md</code> and ADRs 0001–0014.
      Every number satisfies the agreed formula — this is the design under test, not an
@@ -215,12 +215,12 @@
 </div>
 
 <div style="margin-top:56px"></div>
-<div class="sect"><h2>The uncoloured state</h2><span class="tag">2 surfaces</span><span class="rule"></span></div>
+<div class="sect"><h2>When the app can't vouch for a number</h2><span class="tag">3 states</span><span class="rule"></span></div>
 <p style="margin:0 0 24px;color:var(--muted);max-width:62ch;font-size:14px">
-  Colour carries the recommendation in this design, so a score the app cannot vouch for
-  is shown <strong>without</strong> it. Two conditions trigger this: no Daily Record for
-  today (ADR 0009), or RHR absent so the safety override never ran (ADR 0005). The
-  treatment is identical in both cases — only the caption differs.</p>
+  Colour carries the recommendation, so a score the app cannot stand behind is shown
+  <strong>without</strong> it — stale (ADR 0009) or RHR-absent so the override never ran
+  (ADR 0005). The <strong>empty</strong> state is different again: nothing has ever been
+  captured, so there is no number to dim (ADR 0015).</p>
 
 <div class="grid">
 
@@ -273,6 +273,28 @@
        figures, no green anywhere.</p>
     <div class="note off">For the RHR-absent case the caption reads
        <code>NO RHR — UNCHECKED</code> instead of an age. Same grey.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="num">02·e</span><h3>Morning Score — empty</h3></div>
+    <svg class="screen" viewBox="0 0 390 390" role="img" aria-label="Empty state, no score has ever been captured">
+      <circle cx="195" cy="195" r="150" fill="none" stroke="#262628" stroke-width="13"
+              stroke-linecap="round" stroke-dasharray="706.9 942.5" transform="rotate(135 195 195)"/>
+      <text x="195" y="180" fill="#9E9E9E" font-size="27" text-anchor="middle">FIRST SCORE</text>
+      <text x="195" y="215" fill="#9E9E9E" font-size="27" text-anchor="middle">TOMORROW MORNING</text>
+      <g>
+        <circle cx="112" cy="268" r="31" fill="none" stroke="#262628" stroke-width="7"/>
+        <circle cx="195" cy="268" r="31" fill="none" stroke="#262628" stroke-width="7"/>
+        <circle cx="278" cy="268" r="31" fill="none" stroke="#262628" stroke-width="7"/>
+        <text x="112" y="322" fill="#4A4A4A" font-size="19" text-anchor="middle">Body</text>
+        <text x="195" y="322" fill="#4A4A4A" font-size="19" text-anchor="middle">Recov.</text>
+        <text x="278" y="322" fill="#4A4A4A" font-size="19" text-anchor="middle">RHR</text>
+      </g>
+    </svg>
+    <p>A fresh install that could not capture — installed at night, with the history no
+       longer reaching back to that morning's wake.</p>
+    <div class="note off"><strong>No number at all.</strong> A zero would be a legitimate
+       REST morning; these two must never look alike.</div>
   </div>
 
 </div>

@@ -104,7 +104,9 @@ overwrites any previous one.
 
 ```mermaid
 flowchart TD
-    A[Temporal event fires] --> B{Daily Record<br/>for today exists?}
+    T[Temporal event fires] --> B
+    L[App launched] --> B
+    B{Daily Record<br/>for today exists?}
     B -->|yes| X[Exit immediately]
     B -->|no| C{Now past<br/>Profile.wakeTime?}
     C -->|no| X
@@ -113,8 +115,18 @@ flowchart TD
     D -->|yes| E[Read Body Battery at wake<br/>+ timeToRecovery + RHR]
     E --> F[Compute Readiness Score]
     F --> G[Write Daily Record<br/>evict beyond 120]
-    G --> H[Background.exit with today's score]
+    G --> H[Background.exit — notify a<br/>running app to refresh]
 ```
+
+**App launch is a second trigger**, not only the temporal event. A fresh install
+that would otherwise sit inert until tomorrow instead attempts a Capture at once; if
+the history still reaches back to this morning's wake it produces a real Morning Score
+within seconds (ADR 0015). The "record for today exists?" guard makes the Capture
+idempotent per day, so a launch racing the scheduled event is harmless.
+
+`Background.exit()` is **not** a second persistence path — the record is already
+written to Storage by then. Its only job is handing the score to an app that happens
+to be running so it can refresh without re-reading.
 
 Almost every firing costs two comparisons and an exit. Only the first firing after
 wake does real work, so ~48 daily wakeups are far cheaper than the count suggests
@@ -158,8 +170,18 @@ erDiagram
     }
 ```
 
-Roughly 25 bytes per record; 120 records is about 3 KB. Eviction is oldest-first as
-new records arrive (ADR 0006).
+Roughly 25 bytes per record; 120 records is about 3 KB.
+
+**Layout: one Storage value holding an array**, not 120 separate keys. Storage values
+are capped at 32 KB, so a ~3 KB array fits comfortably in one, and oldest-first
+eviction is a single read-modify-write rather than an enumeration over an unbounded
+key space.
+
+**Key: the device-local date at the moment of Capture.** A wearer crossing a timezone
+may therefore produce a duplicate or a skipped day — accepted, because the
+alternative (store UTC, reinterpret on display) relocates the same ambiguity somewhere
+less visible. The Capture's "record for today exists?" guard uses this same local
+date, so guard and key can never disagree.
 
 **A Now Score is never written as a Daily Record.** Storing live evening scores
 alongside morning ones would plot two incompatible measurements on one axis and make
@@ -190,6 +212,11 @@ so answering would present a drained evening Body Battery as a verdict.
 `restingHeartRate` is a daily profile value and cannot change intraday. The Now Score
 re-reads Body Battery and `timeToRecovery` only; RHR is carried over unchanged.
 
+**The Now Score reads the _current_ Body Battery — not the at-wake value.** It must
+not reuse the wake-resolution helper from the Capture; doing so would make the Now
+Score identical to the Morning Score and defeat this feature entirely. The at-wake
+resolution exists solely to keep stored Morning Scores comparable across days.
+
 The consequence is accepted and deliberate: **Body Battery drains by the clock, not
 by fatigue**, so a Now Score reads lower in the evening for reasons unrelated to
 readiness — and lower the later it is asked. The Status Band thresholds were
@@ -210,6 +237,20 @@ The number is still shown. Withholding it would discard useful information and m
 the app feel broken on exactly the mornings it matters; the defect was never showing
 stale data but showing it *unlabelled* (ADR 0009).
 
+### The empty state — no record has ever existed
+
+Distinct from both of the above and from a low score. A fresh install that could not
+capture (installed at night, history no longer reaching that morning's wake) has **no
+number to show at all** — there is no age to report and nothing to dim.
+
+**No number, no arc fill, no colour. Caption: `FIRST SCORE TOMORROW MORNING`.**
+
+A placeholder or a zero was rejected as indistinguishable from a genuine REST morning.
+Showing a Now Score on page 1 instead was also rejected: the Morning/Now distinction
+is what the design rests on, and blurring it on the app's very first screen teaches
+the wrong model immediately. Page 2 already serves anyone wanting a number now
+(ADR 0015).
+
 ---
 
 ## Constraints
@@ -224,18 +265,28 @@ Verified against Garmin's documentation:
   run, so a Capture is never lost to a closed app.
 - `SensorHistory` reaches back only "to the last power cycle" / "most recent samples"
   — it cannot reproduce a past morning, which is why the app persists its own records.
+- **Storage values cap at 32 KB each**; the total Object Store size "can vary between
+  devices".
+- **Background Storage writes require CIQ ≥ 3.2.0.** Below that, `Storage` throws
+  `ObjectStoreAccessException` when called from a background process. The FR165
+  satisfies this at 5.2, so the Capture may write directly — but any port to an older
+  device must move the write into the foreground.
 - The **Background** permission is required.
 
 ### Unverified — confirm before relying on
 
 1. **Background process memory ceiling.** A 32 KB figure circulates in the community
    but is not in Garmin's docs. Confirm against the SDK before sizing the Capture.
-2. **`Application.Storage` ceiling on the FR165.** 3 KB is expected to be comfortable
-   but has not been checked.
-3. **`averageRestingHeartRate` window.** Assumed multi-day. If short, the +7/+12
+2. **Glance memory ceiling.** Glances run under tighter limits than the app, and the
+   glance both reads the store and draws a gradient bar. Not documented; confirm.
+3. **Total Object Store budget on the FR165.** The 32 KB per-value cap is confirmed
+   and is not the binding constraint at ~3 KB; the overall budget is still unmeasured.
+4. **`averageRestingHeartRate` window.** Assumed multi-day. If short, the +7/+12
    thresholds compare today against something too close to today.
-4. **`restingHeartRate` freshness.** Assumed to reflect the night just ended. If it
+5. **`restingHeartRate` freshness.** Assumed to reflect the night just ended. If it
    lags a day, the override fires a day late.
+6. **`Profile.wakeTime` return type.** Assumed convertible to today's `Time.Moment`;
+   the exact type was not confirmed against the SDK.
 
 Items 3 and 4 mean the override is **directionally right but not calibrated**. All
 five formula constants — the 48-hour span, the ×8 slope, the two thresholds, the
@@ -252,6 +303,8 @@ an unread store is justified (ADR 0011):
 - write then read back a record
 - the 120-record eviction boundary
 - no-record-for-today → stale path
+- **empty store → empty state**, distinct from both stale and a low score
+- **launch-triggered Capture is idempotent** with the scheduled one for the same day
 - `timeToRecovery` null vs zero produce different Component Scores
 - each missing-input branch renormalises to the stated weights
 - the override caps at 59 and 39 at the stated thresholds
@@ -274,3 +327,4 @@ an unread store is justified (ADR 0011):
 | [0012](../../adr/0012-capture-schedule-coarse-duration-with-guard.md) | Guarded 30-minute Duration schedule |
 | [0013](../../adr/0013-body-battery-resolved-at-wake-not-at-capture.md) | Body Battery resolved at wake |
 | [0014](../../adr/0014-two-pages-now-score-computed-on-entry.md) | Two pages; Now Score computed on entry |
+| [0015](../../adr/0015-first-run-attempts-an-immediate-capture.md) | First run attempts an immediate Capture |

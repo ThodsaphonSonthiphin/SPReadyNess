@@ -21,9 +21,21 @@ over-retaining costs a few kilobytes on a device that has them. A Daily Record i
 a date, a Readiness Score and three Component Scores — roughly 25 bytes — so 120
 days is about 3 KB. Records are evicted oldest-first as new ones arrive.
 
-**Unverified:** the `Application.Storage` ceiling on the Forerunner 165. Confirm
-against the SDK; 3 KB is expected to be comfortably within it but this has not
-been checked.
+## Storage layout and the day key
+
+The 120 records live in **one Storage value holding an array**, not 120 separate
+keys. Individual Storage values are capped at **32 KB**, so a ~3 KB array sits
+comfortably inside one value, and oldest-first eviction becomes a single
+read-modify-write instead of an enumeration over an unbounded key space.
+
+Records are keyed by the **device-local date at the moment of Capture**. A wearer
+crossing a timezone may therefore produce a duplicate or skip a day. This is
+accepted: the alternative is storing UTC and reinterpreting it for display, which
+moves the same ambiguity somewhere less visible.
+
+**Unverified:** the total Object Store budget on the Forerunner 165 — Garmin states
+it "can vary between devices". The 32 KB per-value cap is confirmed and is not the
+binding constraint here.
 
 ## Missing days break the line
 
