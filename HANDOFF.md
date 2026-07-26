@@ -108,15 +108,17 @@ band threshold.
 
 ## Deferred, non-blocking
 
-- The app UUID in `manifest.xml` is synthetic. Fine for sideloading; needs a real one
-  before store submission.
-- `Components.fromRecoveryHours` truncates where `Readiness` rounds — worth at most
-  1 point on a dial, 0.3 on the score.
-- The glance's position marker uses full-brightness white in the uncoloured states,
-  where it should arguably stay grey.
+One item remains, and it is not fixable in code:
+
 - `Capture.run()`'s temporal-event registration is re-established only in `onStart`.
   If the OS drops it without an app launch, captures stop until the app is next
-  opened. No better hook exists in Connect IQ.
+  opened. Connect IQ exposes no better hook — this is the standard pattern and an
+  accepted platform constraint, not a defect.
+
+Three items previously listed here were fixed before handoff: the synthetic app UUID
+(now a real one), `Components.fromRecoveryHours` truncating where `Readiness` rounds
+(now rounds, pinned by a regression test), and the glance marker staying
+full-brightness white in states designed to recede (now dims with the state).
 
 ## What the tests actually prove
 

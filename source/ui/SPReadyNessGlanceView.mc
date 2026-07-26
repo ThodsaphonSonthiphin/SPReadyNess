@@ -88,8 +88,10 @@ class SPReadyNessGlanceView extends WatchUi.GlanceView {
             dc.drawLine(barLeft, barY, barLeft + barW, barY);
         }
 
-        // Marker on top, in primary text rather than a band colour: it marks
-        // a position, it does not carry the recommendation.
+        // Marker on top. It marks a position and never carries the
+        // recommendation, so it is never a band colour — but it still dims
+        // with the state. Leaving it full white on a greyed card would put
+        // the brightest pixel on screen inside a state designed to recede.
         var markerX = barLeft + (barW * record[:score] / 100);
         // Clamp inside the bar. At score 0 and score 100 the marker sits
         // exactly on an end and would otherwise hang half off the strip.
@@ -97,7 +99,8 @@ class SPReadyNessGlanceView extends WatchUi.GlanceView {
         if (markerX > barLeft + barW - 2)   { markerX = barLeft + barW - 2; }
 
         dc.setPenWidth(3);
-        dc.setColor(Theme.PRIMARY_TEXT, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(current ? Theme.PRIMARY_TEXT : Theme.SECONDARY_TEXT,
+                    Graphics.COLOR_TRANSPARENT);
         dc.drawLine(markerX, barY - 6, markerX, barY + 6);
     }
 }
