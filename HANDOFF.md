@@ -95,10 +95,32 @@ plausibility, not derived from data:
 | `RHR_CAP_REST_BPM` | 12 | deviation that caps it at REST |
 | weights | 50 / 30 / 20 | Body Battery, Recovery, RHR |
 
-Two assumptions behind the override thresholds are also unverified: the averaging
-window of `Profile.averageRestingHeartRate`, and whether `restingHeartRate` reflects
-the night just ended or lags a day. If it lags, the illness override fires a day
-late. Both need a real device to settle.
+Two assumptions behind the override thresholds were flagged as unverified and
+needing a real device to settle. Both are now settled, and the two fields
+turned out to genuinely differ — an initial pass at this (2026-07-26,
+earlier same day) wrongly assumed they'd fail the same way; a `MorningView`
+diagnostic isolating them individually corrected that:
+
+- **`Profile.restingHeartRate` reflects a user-configured profile setting and
+  stays `null` indefinitely** for a user who has never manually confirmed a
+  resting-HR value in Garmin Connect, even though the watch is visibly
+  computing and displaying one elsewhere (confirmed 2026-07-26 on a real
+  fr165: `rhr=null` while Body Battery/Recovery captured fine). Garmin staff
+  confirm this is documented, working-as-designed behavior, not a bug — see
+  the [Garmin Forums bug
+  report](https://forums.garmin.com/developer/connect-iq/i/bug-reports/getprofile-restingheartrate-return-null).
+  This is being replaced with an app-computed value derived from raw
+  `SensorHistory` heart-rate samples (ADR 0016) rather than the Profile field.
+- **`Profile.averageRestingHeartRate` is a *different* field — Garmin's docs
+  describe it as "calculated based on historical data," not user-configured —
+  and it is reliably populated** (confirmed same diagnostic: `base=52`, a
+  plausible real value, on the same device where `restingHeartRate` was
+  null). The RHR Baseline stays read from this field unchanged; ADR 0017's
+  plan to also replace the baseline with an app-computed trailing average was
+  written before this was isolated, and was rejected once it was. Its
+  averaging window remains exactly as unverified as before — still worth
+  confirming empirically before the override constants are tuned — but it is
+  a real, populated value, not a null one.
 
 **The weights must stay integers.** The scoring path is integer arithmetic
 throughout — `(2 * sum + total) / (2 * total)` — because a float `total` puts exact

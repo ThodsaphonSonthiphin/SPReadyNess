@@ -26,20 +26,20 @@ class SPReadyNessApp extends Application.AppBase {
         Background.registerForTemporalEvent(interval);
     }
 
-    function getServiceDelegate() as Lang.Array<System.ServiceDelegate> {
-        return [ new BackgroundService() ] as Lang.Array<System.ServiceDelegate>;
+    function getServiceDelegate() as [System.ServiceDelegate] {
+        return [ new BackgroundService() ] as [System.ServiceDelegate];
     }
 
     function onBackgroundData(data as Application.PersistableType) as Void {
         WatchUi.requestUpdate();
     }
 
-    function getInitialView() as Lang.Array<WatchUi.Views or WatchUi.InputDelegates>? {
+    function getInitialView() as [WatchUi.Views] or [WatchUi.Views, WatchUi.InputDelegates] {
         return [ new MorningView(), new PageDelegate() ]
-            as Lang.Array<WatchUi.Views or WatchUi.InputDelegates>;
+            as [WatchUi.Views, WatchUi.InputDelegates];
     }
 
-    function getGlanceView() as Lang.Array<WatchUi.GlanceView>? {
-        return [ new SPReadyNessGlanceView() ] as Lang.Array<WatchUi.GlanceView>;
+    function getGlanceView() as [WatchUi.GlanceView] or [WatchUi.GlanceView, WatchUi.GlanceViewDelegate] or Null {
+        return [ new SPReadyNessGlanceView() ] as [WatchUi.GlanceView];
     }
 }

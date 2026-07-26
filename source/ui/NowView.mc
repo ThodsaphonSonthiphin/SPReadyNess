@@ -78,7 +78,16 @@ class NowView extends WatchUi.View {
         Draw.scoreArc(dc, score, colour, !vouched, true);
 
         dc.setColor(colour, Graphics.COLOR_TRANSPARENT);
-        dc.drawRoundedRectangle(cx - 56, 92, 112, 34, 17);
+        // Pill width comes from the real measured text (FONT_SMALL "NOW
+        // hh:mm" is ~189px wide, not the ~112px originally guessed before
+        // this had ever been rendered) plus padding, so it can't drift out
+        // of sync with the text again. Height/position keep the mockup's
+        // slim-badge proportions unchanged: those already render correctly
+        // (confirmed on screen) even though the font's reported bounding
+        // box height overstates actual glyph ink for this string.
+        var stampWidth = dc.getTextDimensions(_stamp, Graphics.FONT_SMALL)[0];
+        var pillW = stampWidth + 32;
+        dc.drawRoundedRectangle(cx - pillW / 2, 92, pillW, 34, 17);
         dc.drawText(cx, 95, Graphics.FONT_SMALL, _stamp, Graphics.TEXT_JUSTIFY_CENTER);
         dc.drawText(cx, 130, Graphics.FONT_MEDIUM, label,
                     Graphics.TEXT_JUSTIFY_CENTER);

@@ -20,8 +20,17 @@ class SPReadyNessGlanceView extends WatchUi.GlanceView {
         var w = dc.getWidth();
         var h = dc.getHeight();
 
+        // Centred, not left-justified (matches the approved mockup). The
+        // glance's rectangular canvas is placed near the top of a round
+        // bezel, so its own top corners fall outside the visible circular
+        // screen. Confirmed by rendering the canvas bounds directly: the
+        // corners sat outside the circle. Centring alone still wasn't
+        // enough — at y=2 (the canvas's own top edge, the narrowest part
+        // of the visible chord) "Readiness" is wide enough to still reach
+        // the clipped zone on both sides, so it also needs to sit lower,
+        // where the round face is wider.
         dc.setColor(Theme.PRIMARY_TEXT, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(5, 2, Graphics.FONT_TINY, "Readiness", Graphics.TEXT_JUSTIFY_LEFT);
+        dc.drawText((w + 1) / 2, 16, Graphics.FONT_TINY, "Readiness", Graphics.TEXT_JUSTIFY_CENTER);
 
         if (state[:kind] == DisplayState.EMPTY) {
             dc.setColor(Theme.SECONDARY_TEXT, Graphics.COLOR_TRANSPARENT);
@@ -45,11 +54,17 @@ class SPReadyNessGlanceView extends WatchUi.GlanceView {
         if (current) {
             label = StatusBand.nameOf(StatusBand.of(record[:score]));
         } else if (state[:kind] == DisplayState.UNCHECKED) {
-            label = WatchUi.loadResource(Rez.Strings.NoRhrShort) as Lang.String;
+            // Literal, not WatchUi.loadResource(Rez.Strings.*): confirmed on a
+            // real device (CIQ_LOG.YAML) that (:glance)-scoped code cannot
+            // access the generated Rez symbol at all — "Illegal Access (Out
+            // of Bounds): Could not access symbol 'Rez'", crashing the glance
+            // outright. Matches the EMPTY branch above, which already avoided
+            // Rez for the same reason.
+            label = "No RHR";
         } else if (state[:ageDays] <= 0) {
             // Reachable when a timezone crossing leaves a future-dated
             // record as the newest (ADR 0006).
-            label = WatchUi.loadResource(Rez.Strings.NotToday) as Lang.String;
+            label = "NOT TODAY";
         } else if (state[:ageDays] == 1) {
             label = "1d ago";
         } else {

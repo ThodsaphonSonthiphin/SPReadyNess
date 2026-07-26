@@ -11,7 +11,7 @@ module Draw {
     // This is therefore defensive: if drawArc already normalises, norm() is
     // a no-op; if it does not, it is the difference between a correct track
     // and a missing or wrong one on all three surfaces, every frame.
-    hidden function norm(angle as Lang.Number) as Lang.Number {
+    function norm(angle as Lang.Number) as Lang.Number {
         return ((angle % 360) + 360) % 360;
     }
 

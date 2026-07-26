@@ -1,9 +1,10 @@
 using Toybox.Test;
 using Toybox.Lang;
 
-// (:test) so the helper is stripped from the release binary. `tests` is on
-// base.sourcePath, so an unannotated function here ships to the device.
-(:test)
+// Not (:test): the SDK's unit-test harness auto-invokes every (:test)-tagged
+// top-level function as a test case with a single Test.Logger argument, so
+// tagging this two-argument helper that way makes the harness call it wrong
+// and error out. Ships as inert dead code in non-test builds instead.
 function makeTestRecord(dayKey as Lang.Number, score as Lang.Number) as Lang.Dictionary {
     return DailyRecord.make(dayKey, score, 88, 73, 89, false);
 }
@@ -30,7 +31,9 @@ function hasRecordForToday(logger as Test.Logger) as Lang.Boolean {
 (:test)
 function emptyStoreHasNoLatest(logger as Test.Logger) as Lang.Boolean {
     RecordStore.clear();
-    Test.assertEqualMessage(RecordStore.latest(), null, "empty store returns null");
+    // Test.assertEqualMessage crashes when the actual value is null (SDK 9.2.0
+    // Run No Evil bug); assert on the equality instead of handing null to it.
+    Test.assertMessage(RecordStore.latest() == null, "empty store returns null");
     Test.assertEqualMessage(RecordStore.all().size(), 0, "empty store is empty");
     return true;
 }
