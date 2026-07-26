@@ -36,9 +36,25 @@ class SPReadyNessGlanceView extends WatchUi.GlanceView {
             ? StatusBand.colourOf(StatusBand.of(record[:score]))
             : Theme.SECONDARY_TEXT;
 
-        var label = current
-            ? StatusBand.nameOf(StatusBand.of(record[:score]))
-            : (state[:ageDays].toString() + "d ago");
+        // UNCHECKED is TODAY's record with RHR missing, not an old one, so
+        // it must not fall through to the age branch — DisplayState sets its
+        // ageDays to 0 and the wearer would read "0d ago", which is both
+        // confusing and false. The glance uses a short form because the card
+        // is a narrow strip; the main screen spells it out in full.
+        var label;
+        if (current) {
+            label = StatusBand.nameOf(StatusBand.of(record[:score]));
+        } else if (state[:kind] == DisplayState.UNCHECKED) {
+            label = WatchUi.loadResource(Rez.Strings.NoRhrShort) as Lang.String;
+        } else if (state[:ageDays] <= 0) {
+            // Reachable when a timezone crossing leaves a future-dated
+            // record as the newest (ADR 0006).
+            label = WatchUi.loadResource(Rez.Strings.NotToday) as Lang.String;
+        } else if (state[:ageDays] == 1) {
+            label = "1d ago";
+        } else {
+            label = state[:ageDays].toString() + "d ago";
+        }
 
         dc.setColor(colour, Graphics.COLOR_TRANSPARENT);
         dc.drawText(5, h / 2 - 6, Graphics.FONT_SMALL, label, Graphics.TEXT_JUSTIFY_LEFT);
