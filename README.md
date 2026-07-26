@@ -207,7 +207,7 @@ wrong results, 20 of them crossing a band.
 
 ```
 source/          17 Monkey C files — scoring, storage, capture, views
-tests/            7 test files, 35 tests
+tests/            7 test files, 36 tests
 resources/        strings and the launcher icon
 docs/adr/        15 architecture decision records
 docs/superpowers/specs/    the design spec
