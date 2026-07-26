@@ -1116,13 +1116,16 @@ class SPReadyNessApp extends Application.AppBase {
     }
 
     function getInitialView() as Lang.Array<WatchUi.Views or WatchUi.InputDelegates>? {
-        return [ new MorningView(), new PageDelegate() ]
-            as Lang.Array<WatchUi.Views or WatchUi.InputDelegates>;
+        // Placeholder until Task 13 swaps in MorningView + PageDelegate.
+        // Keeping a real View here means the tree compiles at every commit.
+        return [ new WatchUi.View() ] as Lang.Array<WatchUi.Views>;
     }
 }
 ```
 
-`MorningView` and `PageDelegate` are created in Tasks 10 and 13. This file will not compile until then — that is expected and is resolved by Task 13.
+**The tree must compile at every commit.** `getInitialView` keeps returning a plain
+`WatchUi.View` until Task 13 has both `MorningView` and `PageDelegate` to swap in.
+Do not reference either class before then.
 
 - [ ] **Step 3: Commit**
 
@@ -1690,7 +1693,19 @@ Closes the compile gap left by Task 7 and verifies the whole app against the app
 - Consumes: `MorningView`, `NowView`
 - Produces: `class PageDelegate extends WatchUi.BehaviorDelegate`
 
-- [ ] **Step 1: Implement paging**
+- [ ] **Step 1: Swap the placeholder view for the real one**
+
+In `source/SPReadyNessApp.mc`, replace the placeholder `getInitialView` body left by
+Task 7 with:
+
+```monkeyc
+    function getInitialView() as Lang.Array<WatchUi.Views or WatchUi.InputDelegates>? {
+        return [ new MorningView(), new PageDelegate() ]
+            as Lang.Array<WatchUi.Views or WatchUi.InputDelegates>;
+    }
+```
+
+- [ ] **Step 2: Implement paging**
 
 Create `source/PageDelegate.mc`:
 
@@ -1717,17 +1732,17 @@ class PageDelegate extends WatchUi.BehaviorDelegate {
 }
 ```
 
-- [ ] **Step 2: Build the app**
+- [ ] **Step 3: Build the app**
 
 Run: `monkeyc -f monkey.jungle -d fr165 -o bin/spreadyness.prg -y developer_key.der`
 Expected: build succeeds with no errors.
 
-- [ ] **Step 3: Run the full test suite**
+- [ ] **Step 4: Run the full test suite**
 
 Run: `monkeyc -f monkey.jungle -d fr165 -o bin/test.prg -y developer_key.der --unit-test && monkeydo bin/test.prg fr165 -t`
 Expected: all tests from Tasks 2–8 PASS.
 
-- [ ] **Step 4: Verify against the mockup in the simulator**
+- [ ] **Step 5: Verify against the mockup in the simulator**
 
 Run:
 
@@ -1743,10 +1758,10 @@ In the simulator, check each against [the approved mockup](../../mockups/screens
 - Page down: dashed arc, `NOW hh:mm`, and a score that may legitimately differ.
 - Background is pure black in every state.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add source/PageDelegate.mc
+git add source/PageDelegate.mc source/SPReadyNessApp.mc
 git commit -m "feat: page navigation and full app build"
 ```
 
