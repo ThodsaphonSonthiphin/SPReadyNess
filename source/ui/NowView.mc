@@ -27,9 +27,15 @@ class NowView extends WatchUi.View {
         _body     = Components.fromBodyBattery(Sensors.bodyBatteryNow());
         _recovery = Components.fromRecoveryHours(Sensors.recoveryHours());
 
-        // RHR is a daily profile value and cannot change intraday, so it is
-        // carried over rather than "re-read" — only two inputs actually move.
-        var rhrValue = Sensors.rhr();
+        // RHR is a daily value and cannot change intraday, so it is read
+        // from today's already-captured record rather than re-derived (ADR
+        // 0018) — re-walking SensorHistory this late in the day risks the
+        // buffer having rolled past this morning's overnight window
+        // entirely. Sensors.rhrBaseline() has no such buffer (a Profile
+        // field, confirmed reliable), so it stays a live read.
+        var record = RecordStore.latest();
+        var today = DailyRecord.today();
+        var rhrValue = (record != null && record[:day] == today) ? record[:rhrBpm] : null;
         var baseline = Sensors.rhrBaseline();
         _rhr = Components.fromRhr(rhrValue, baseline);
         var delta = (rhrValue != null && baseline != null) ? rhrValue - baseline : null;

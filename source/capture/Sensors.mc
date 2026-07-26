@@ -72,13 +72,6 @@ module Sensors {
         return info.timeToRecovery; // may legitimately be 0 = fully recovered
     }
 
-    function rhr() as Lang.Number? {
-        var profile = UserProfile.getProfile();
-        if (profile == null) { return null; }
-        if (!(profile has :restingHeartRate)) { return null; }
-        return profile.restingHeartRate;
-    }
-
     // ADR 0016: Profile.restingHeartRate is a user-configured setting that
     // stays null indefinitely for most real users (confirmed on real fr165
     // hardware and Garmin's own bug tracker) — not the watch's auto-computed
