@@ -3,3 +3,4 @@ developer_key.pem
 developer_key.der
 *.prg
 *.iq
+.superpowers/
