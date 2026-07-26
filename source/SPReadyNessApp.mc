@@ -39,4 +39,8 @@ class SPReadyNessApp extends Application.AppBase {
         // Keeping a real View here means the tree compiles at every commit.
         return [ new WatchUi.View() ] as Lang.Array<WatchUi.Views>;
     }
+
+    function getGlanceView() as Lang.Array<WatchUi.GlanceView>? {
+        return [ new SPReadyNessGlanceView() ] as Lang.Array<WatchUi.GlanceView>;
+    }
 }
