@@ -791,17 +791,28 @@ module RecordStore {
         return records[records.size() - 1];
     }
 
+    // Inserts in day order rather than appending. Appending would be correct
+    // only while the local date never moves backward — but ADR 0006 explicitly
+    // accepts a wearer crossing a timezone, which can do exactly that. An
+    // out-of-order array makes latest() return a stale record as current, and
+    // latest() is what decides whether the screen shows a band colour or the
+    // greyed stale state.
     function put(record as Lang.Dictionary) as Void {
         var records = all();
         var out = [];
+        var inserted = false;
 
-        // One record per day: a rewrite of the same day replaces it
         for (var i = 0; i < records.size(); i += 1) {
-            if (records[i][:day] != record[:day]) {
-                out.add(records[i]);
+            // One record per day: a rewrite of the same day replaces it
+            if (records[i][:day] == record[:day]) { continue; }
+
+            if (!inserted && records[i][:day] > record[:day]) {
+                out.add(record);
+                inserted = true;
             }
+            out.add(records[i]);
         }
-        out.add(record);
+        if (!inserted) { out.add(record); }
 
         // Evict oldest-first
         while (out.size() > Constants.MAX_RECORDS) {
