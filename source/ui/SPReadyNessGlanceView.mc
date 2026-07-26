@@ -61,13 +61,43 @@ class SPReadyNessGlanceView extends WatchUi.GlanceView {
         dc.drawText(w - 5, h / 2 - 6, Graphics.FONT_SMALL, record[:score].toString(),
                     Graphics.TEXT_JUSTIFY_RIGHT);
 
-        // Position bar. Desaturated when the score carries no advice.
-        var barY = h - 10;
+        // Gradient bar (design baseline, "Components"): a red-to-green strip
+        // with a position marker. An arc does not fit on a glance strip, so
+        // this is the glance's whole visual scale.
+        var barY    = h - 10;
+        var barLeft = 5;
+        var barW    = w - 10;
+
         dc.setPenWidth(6);
-        dc.setColor(current ? Theme.TRACK : Theme.DIM_TRACK, Graphics.COLOR_TRANSPARENT);
-        dc.drawLine(5, barY, w - 5, barY);
-        dc.setColor(colour, Graphics.COLOR_TRANSPARENT);
-        var markerX = 5 + ((w - 10) * record[:score] / 100);
-        dc.drawLine(markerX - 2, barY - 5, markerX - 2, barY + 5);
+
+        if (current) {
+            // Four abutting segments, left to right, at the real Status Band
+            // boundaries — 0/40/60/80/100 — rather than four equal quarters.
+            // Sized this way the marker always lands over its own band's
+            // colour, so the strip and the label can never disagree.
+            var edges = [ 0, 40, 60, 80, 100 ];
+            for (var band = 0; band < 4; band += 1) {
+                dc.setColor(StatusBand.colourOf(band), Graphics.COLOR_TRANSPARENT);
+                dc.drawLine(barLeft + (barW * edges[band] / 100), barY,
+                            barLeft + (barW * edges[band + 1] / 100), barY);
+            }
+        } else {
+            // Uncoloured state: a gradient IS advice, so a score the app
+            // cannot vouch for gets the flat desaturated track instead.
+            dc.setColor(Theme.DIM_TRACK, Graphics.COLOR_TRANSPARENT);
+            dc.drawLine(barLeft, barY, barLeft + barW, barY);
+        }
+
+        // Marker on top, in primary text rather than a band colour: it marks
+        // a position, it does not carry the recommendation.
+        var markerX = barLeft + (barW * record[:score] / 100);
+        // Clamp inside the bar. At score 0 and score 100 the marker sits
+        // exactly on an end and would otherwise hang half off the strip.
+        if (markerX < barLeft + 2)          { markerX = barLeft + 2; }
+        if (markerX > barLeft + barW - 2)   { markerX = barLeft + barW - 2; }
+
+        dc.setPenWidth(3);
+        dc.setColor(Theme.PRIMARY_TEXT, Graphics.COLOR_TRANSPARENT);
+        dc.drawLine(markerX, barY - 6, markerX, barY + 6);
     }
 }

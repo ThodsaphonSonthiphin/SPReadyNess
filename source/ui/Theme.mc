@@ -4,6 +4,9 @@ using Toybox.Lang;
 // Tokens from docs/design-baseline.md. Pure black is non-negotiable: on an
 // AMOLED panel a black pixel is an unlit pixel, so #000000 is both the
 // highest-contrast and lowest-power ground.
+// Glance only, of the two extra scopes. The glance draws with these tokens;
+// the background process has no Dc at all.
+(:glance)
 module Theme {
     const BACKGROUND     = 0x000000;
     const PRIMARY_TEXT   = 0xFFFFFF;

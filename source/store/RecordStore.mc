@@ -3,6 +3,9 @@ using Toybox.Lang;
 
 // One Storage key holding an array, oldest first (ADR 0006). Values cap at
 // 32 KB; 120 records at ~25 bytes is ~3 KB, comfortably inside one value.
+// Both scopes: Capture writes through hasRecordFor()/put(), and the glance
+// reads through latest(). This module is the only thing the two share.
+(:background :glance)
 module RecordStore {
 
     function all() as Lang.Array {

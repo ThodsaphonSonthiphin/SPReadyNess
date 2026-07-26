@@ -1,3 +1,18 @@
 project.manifest = manifest.xml
 base.sourcePath = source;tests
 base.resourcePath = resources
+
+# Without these three lines the (:glance) and (:background) annotations on
+# the modules are inert: nothing is excluded from anything, and Draw,
+# MorningView, NowView and Sensors compile into the glance and background
+# scopes along with the rest of the app. Both of those scopes run under
+# tighter memory ceilings than the app itself (spec, Open Questions), so the
+# annotations only start paying once the scopes actually exclude.
+#
+# Read as: the app build drops everything marked as glance-only or
+# background-only; the glance build drops background code; the background
+# build drops glance code. A module both scopes need carries both
+# annotations, so neither of the last two lines excludes it.
+base.excludeAnnotations = glance;background
+glance.excludeAnnotations = background
+background.excludeAnnotations = glance

@@ -2,6 +2,10 @@ using Toybox.Lang;
 using Toybox.Time;
 using Toybox.Time.Gregorian;
 
+// Glance only. The glance calls forRecord() to decide between the coloured,
+// stale, unchecked and empty presentations. Capture stores records without
+// ever asking how they should be presented.
+(:glance)
 module DisplayState {
     enum {
         EMPTY = 0,      // nothing ever captured — no number at all (ADR 0015)

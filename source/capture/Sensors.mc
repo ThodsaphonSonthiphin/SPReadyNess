@@ -5,6 +5,10 @@ using Toybox.System;
 using Toybox.Time;
 using Toybox.UserProfile;
 
+// Background only. Capture reads hardware here. NowView also calls
+// bodyBatteryNow() and rhr(), but NowView lives in the app scope, which is
+// not one of the excluded ones.
+(:background)
 module Sensors {
 
     // ADR 0013: the Capture fires up to 30 minutes after waking, but Body

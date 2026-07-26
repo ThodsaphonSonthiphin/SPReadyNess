@@ -30,6 +30,28 @@ function recoveryZeroStillBuildsARecord(logger as Test.Logger) as Lang.Boolean {
     return true;
 }
 
+// Spec, Testing: "launch-triggered Capture is idempotent with the scheduled
+// one for the same day". SPReadyNessApp.onStart calls Capture.run() and so
+// does BackgroundService.onTemporalEvent; on the first morning after an
+// install both fire minutes apart. The second must write nothing rather than
+// overwrite the morning's record with a later, lower Body Battery.
+(:test)
+function secondCaptureForTheSameDayWritesNothing(logger as Test.Logger) as Lang.Boolean {
+    RecordStore.clear();
+
+    var first = Capture.runWith(88, 24, 50, 50, 20260726);
+    Test.assertMessage(first, "the first capture of the day writes a record");
+
+    var second = Capture.runWith(70, 24, 50, 50, 20260726);
+    Test.assertEqualMessage(second, false,
+        "the second capture for the same day writes nothing");
+    Test.assertEqualMessage(RecordStore.all().size(), 1,
+        "still exactly one record for the day");
+    Test.assertEqualMessage(RecordStore.latest()[:body], 88,
+        "the first capture's value survived, not the later one");
+    return true;
+}
+
 (:test)
 function overrideIsRecordedOnTheRecord(logger as Test.Logger) as Lang.Boolean {
     // rhr 58 vs baseline 50 = +8bpm -> caps at 59

@@ -2,6 +2,9 @@ using Toybox.Lang;
 using Toybox.Time;
 using Toybox.Time.Gregorian;
 
+// Both scopes: Capture calls today() and make(), and the glance calls
+// today() to compare against the stored record's day key.
+(:background :glance)
 module DailyRecord {
 
     // Device-local date as YYYYMMDD (ADR 0006). Guard and storage key use the

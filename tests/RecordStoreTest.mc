@@ -1,6 +1,9 @@
 using Toybox.Test;
 using Toybox.Lang;
 
+// (:test) so the helper is stripped from the release binary. `tests` is on
+// base.sourcePath, so an unannotated function here ships to the device.
+(:test)
 function makeTestRecord(dayKey as Lang.Number, score as Lang.Number) as Lang.Dictionary {
     return DailyRecord.make(dayKey, score, 88, 73, 89, false);
 }

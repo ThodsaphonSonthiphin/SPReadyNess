@@ -1,5 +1,8 @@
 using Toybox.Lang;
 
+// Glance only. The glance card picks the band label and the gradient-bar
+// segment colours here. The background never draws and never bands.
+(:glance)
 module StatusBand {
     enum {
         REST = 0,

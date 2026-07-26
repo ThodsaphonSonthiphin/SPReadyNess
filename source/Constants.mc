@@ -1,5 +1,9 @@
 using Toybox.Lang;
 
+// Both scopes: the background reads the weights and the override thresholds
+// through Readiness/Components, and the glance reads STORAGE_KEY and
+// MAX_RECORDS through RecordStore.
+(:background :glance)
 module Constants {
     // Score weights as INTEGER numerators over their runtime sum — exact
     // fractions, never rounded percentages (ADR 0004/0005), and never floats.

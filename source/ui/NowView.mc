@@ -54,31 +54,54 @@ class NowView extends WatchUi.View {
         }
 
         var score = _result[:score];
-        var colour = StatusBand.colourOf(StatusBand.of(score));
 
-        // Dashed: a Now Score must never be mistaken for a Morning Score.
-        Draw.scoreArc(dc, score, colour, false, true);
+        // The uncoloured state is a rule about the SCORE, not about the
+        // screen (ADR 0005, docs/design-baseline.md "The uncoloured state").
+        // With RHR absent, compute() renormalises over the two remaining
+        // weights and the illness override never runs, so the number is a
+        // reading and not advice — on this page exactly as on the glance and
+        // the Morning page. rhrChecked is what compute() reports for this.
+        var vouched = _result[:rhrChecked];
+
+        var colour = vouched
+            ? StatusBand.colourOf(StatusBand.of(score))
+            : Theme.SECONDARY_TEXT;
+
+        var label = vouched
+            ? StatusBand.nameOf(StatusBand.of(score))
+            : WatchUi.loadResource(Rez.Strings.NoRhr) as Lang.String;
+
+        // `dashed` and `dimmed` are independent and both are set here on
+        // purpose. Dashed says "live, not the authoritative morning number";
+        // dimmed says "the app cannot vouch for this". A Now Score is always
+        // the former and only sometimes the latter.
+        Draw.scoreArc(dc, score, colour, !vouched, true);
 
         dc.setColor(colour, Graphics.COLOR_TRANSPARENT);
         dc.drawRoundedRectangle(cx - 56, 92, 112, 34, 17);
         dc.drawText(cx, 95, Graphics.FONT_SMALL, _stamp, Graphics.TEXT_JUSTIFY_CENTER);
-        dc.drawText(cx, 130, Graphics.FONT_MEDIUM,
-                    StatusBand.nameOf(StatusBand.of(score)),
+        dc.drawText(cx, 130, Graphics.FONT_MEDIUM, label,
                     Graphics.TEXT_JUSTIFY_CENTER);
 
-        dc.setColor(Theme.PRIMARY_TEXT, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(vouched ? Theme.PRIMARY_TEXT : Theme.SECONDARY_TEXT,
+                    Graphics.COLOR_TRANSPARENT);
         dc.drawText(cx, 165, Graphics.FONT_NUMBER_THAI_HOT, score.toString(),
                     Graphics.TEXT_JUSTIFY_CENTER);
 
-        drawDials(dc, cx);
+        drawDials(dc, cx, vouched);
     }
 
     // The same three Component Scores the headline was built from. Without
     // these the wearer cannot see WHY a live score differs from this
     // morning's — which is almost always Body Battery having drained by the
-    // clock rather than by fatigue (ADR 0010). Never dimmed: a Now Score is
-    // live and fully vouched for.
-    function drawDials(dc as Graphics.Dc, cx as Lang.Number) as Void {
+    // clock rather than by fatigue (ADR 0010).
+    //
+    // The dials follow the headline: when the score is not vouched for they
+    // go grey and dimmed together with it, exactly as MorningView does in
+    // its UNCHECKED state. Leaving Body and Recovery in full band colour
+    // under a grey headline would put the advice channel back on screen by
+    // the side door.
+    function drawDials(dc as Graphics.Dc, cx as Lang.Number, vouched as Lang.Boolean) as Void {
         var y = 278;
         var dials = [
             [ cx - 83, _body,     "Body" ],
@@ -89,10 +112,13 @@ class NowView extends WatchUi.View {
         for (var i = 0; i < dials.size(); i += 1) {
             var value = dials[i][1];
             var colour = Theme.SECONDARY_TEXT;
-            if (value != null) {
+            if (vouched && value != null) {
                 colour = StatusBand.colourOf(StatusBand.of(value));
             }
-            Draw.componentDial(dc, dials[i][0], y, value, colour, false, dials[i][2]);
+            // Draw.componentDial(dc, x, y, value, colour, dimmed, caption) —
+            // checked against the signature in source/ui/Draw.mc. `dimmed`
+            // is a Boolean, so it cannot be transposed with `colour`.
+            Draw.componentDial(dc, dials[i][0], y, value, colour, !vouched, dials[i][2]);
         }
     }
 }

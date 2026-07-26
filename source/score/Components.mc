@@ -1,5 +1,8 @@
 using Toybox.Lang;
 
+// Background only. Capture normalises the raw sensor values here; the glance
+// renders an already-stored record and never scores anything.
+(:background)
 module Components {
 
     function clamp(value as Lang.Float) as Lang.Number {

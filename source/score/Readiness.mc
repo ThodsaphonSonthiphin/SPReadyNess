@@ -1,5 +1,8 @@
 using Toybox.Lang;
 
+// Background only, for the same reason as Components: the scheduled Capture
+// computes the score, the glance only displays a stored one.
+(:background)
 module Readiness {
 
     // Returns null when Body Battery is absent (ADR 0005) — without it,
