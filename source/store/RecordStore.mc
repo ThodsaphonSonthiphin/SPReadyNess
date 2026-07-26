@@ -20,7 +20,8 @@ module RecordStore {
             "body"          => record[:body],
             "recovery"      => record[:recovery],
             "rhr"           => record[:rhr],
-            "overrideFired" => record[:overrideFired]
+            "overrideFired" => record[:overrideFired],
+            "rhrBpm"        => record[:rhrBpm]
         };
     }
 
@@ -31,7 +32,8 @@ module RecordStore {
             :body          => stored["body"],
             :recovery      => stored["recovery"],
             :rhr           => stored["rhr"],
-            :overrideFired => stored["overrideFired"]
+            :overrideFired => stored["overrideFired"],
+            :rhrBpm        => stored["rhrBpm"]
         };
     }
 

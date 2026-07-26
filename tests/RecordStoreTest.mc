@@ -85,3 +85,30 @@ function outOfOrderWriteLandsInDayOrder(logger as Test.Logger) as Lang.Boolean {
         "latest is the newest DAY, not the newest WRITE");
     return true;
 }
+
+(:test)
+function rhrBpmRoundTripsThroughStorage(logger as Test.Logger) as Lang.Boolean {
+    RecordStore.clear();
+    RecordStore.put(DailyRecord.make(20260726, 84, 88, 73, 89, false, 52));
+    var latest = RecordStore.latest();
+    Test.assertEqualMessage(latest[:rhrBpm], 52, "raw rhr bpm round-trips through Storage");
+    return true;
+}
+
+(:test)
+function missingRhrBpmKeyDoesNotThrow(logger as Test.Logger) as Lang.Boolean {
+    // Simulates a record stored before this field existed: no "rhrBpm" key
+    // at all in the persisted (String-keyed) dictionary.
+    var oldStyleStored = {
+        "day" => 20260726,
+        "score" => 84,
+        "body" => 88,
+        "recovery" => 73,
+        "rhr" => 89,
+        "overrideFired" => false
+    };
+    var record = RecordStore.fromStorable(oldStyleStored);
+    Test.assertMessage(record[:rhrBpm] == null,
+        "a pre-migration record with no rhrBpm key degrades to null, not a throw");
+    return true;
+}
