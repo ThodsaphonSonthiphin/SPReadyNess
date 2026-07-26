@@ -1348,7 +1348,7 @@ git commit -m "feat: display state selection for the three score states"
 - Create: `source/ui/Theme.mc`, `source/ui/Draw.mc`
 
 **Interfaces:**
-- Produces: `Theme.BACKGROUND`, `Theme.PRIMARY_TEXT`, `Theme.SECONDARY_TEXT`, `Theme.TRACK`, `Theme.DIM_TRACK`; `Draw.scoreArc(dc, score, colour, dashed)`, `Draw.componentDial(dc, x, y, value, colour, trackColour, caption)`
+- Produces: `Theme.BACKGROUND`, `Theme.PRIMARY_TEXT`, `Theme.SECONDARY_TEXT`, `Theme.TRACK`, `Theme.DIM_TRACK`; `Draw.scoreArc(dc, score, colour, dimmed, dashed)`, `Draw.componentDial(dc, x, y, value, colour, dimmed, caption)`
 
 - [ ] **Step 1: Write the theme**
 
@@ -1396,6 +1396,7 @@ module Draw {
         dc as Graphics.Dc,
         score as Lang.Number,
         colour as Lang.Number,
+        dimmed as Lang.Boolean,
         dashed as Lang.Boolean
     ) as Void {
         var cx = dc.getWidth() / 2;
@@ -1403,7 +1404,9 @@ module Draw {
 
         dc.setPenWidth(Theme.ARC_WIDTH);
 
-        dc.setColor(Theme.TRACK, Graphics.COLOR_TRANSPARENT);
+        // The track dims with the state. A score the app cannot vouch for
+        // recedes entirely, ring included — matching mockup screens 02s/02e.
+        dc.setColor(dimmed ? Theme.DIM_TRACK : Theme.TRACK, Graphics.COLOR_TRANSPARENT);
         dc.drawArc(cx, cy, Theme.ARC_RADIUS, Graphics.ARC_CLOCKWISE,
                    Theme.ARC_START_DEGREES,
                    Theme.ARC_START_DEGREES - Theme.ARC_SWEEP_DEGREES);
@@ -1434,14 +1437,16 @@ module Draw {
         y as Lang.Number,
         value as Lang.Number?,
         colour as Lang.Number,
-        trackColour as Lang.Number,
+        dimmed as Lang.Boolean,
         caption as Lang.String
     ) as Void {
         dc.setPenWidth(Theme.DIAL_WIDTH);
 
-        // The caller chooses the track: Theme.TRACK in live states,
-        // Theme.DIM_TRACK in the uncoloured and empty ones.
-        dc.setColor(trackColour, Graphics.COLOR_TRANSPARENT);
+        // `dimmed` is a Boolean rather than a second colour parameter on
+        // purpose. Two adjacent Lang.Number colours can be transposed at a
+        // call site with no compile or runtime error, rendering wrongly and
+        // silently; a Boolean cannot be confused with a colour int.
+        dc.setColor(dimmed ? Theme.DIM_TRACK : Theme.TRACK, Graphics.COLOR_TRANSPARENT);
         dc.drawCircle(x, y, Theme.DIAL_RADIUS);
 
         // Guard the degenerate arc exactly as scoreArc does. A start angle
@@ -1459,7 +1464,11 @@ module Draw {
         // A Component Score of 0 still shows its number — only the ring fill
         // is suppressed. Absent (null) shows neither.
         if (value != null) {
-            dc.setColor(Theme.PRIMARY_TEXT, Graphics.COLOR_TRANSPARENT);
+            // The number dims with the state as well. A stale score whose
+            // dial figures stayed full white would read as live at a glance,
+            // which is exactly what the uncoloured state exists to prevent.
+            dc.setColor(dimmed ? Theme.SECONDARY_TEXT : Theme.PRIMARY_TEXT,
+                        Graphics.COLOR_TRANSPARENT);
             dc.drawText(x, y - 14, Graphics.FONT_SMALL, value.toString(),
                         Graphics.TEXT_JUSTIFY_CENTER);
         }
@@ -1528,7 +1537,7 @@ class MorningView extends WatchUi.View {
             ? StatusBand.nameOf(StatusBand.of(record[:score]))
             : captionFor(state);
 
-        Draw.scoreArc(dc, record[:score], colour, false);
+        Draw.scoreArc(dc, record[:score], colour, !current, false);
 
         dc.setColor(colour, Graphics.COLOR_TRANSPARENT);
         dc.drawText(dc.getWidth() / 2, 100, Graphics.FONT_MEDIUM, caption,
@@ -1554,14 +1563,24 @@ class MorningView extends WatchUi.View {
     // ADR 0015: no number at all. A zero would be a legitimate REST morning,
     // and the two must never look alike.
     function drawEmpty(dc as Graphics.Dc) as Void {
-        Draw.scoreArc(dc, 0, Theme.TRACK, false);
+        var cx = dc.getWidth() / 2;
+
+        Draw.scoreArc(dc, 0, Theme.TRACK, true, false);
         dc.setColor(Theme.SECONDARY_TEXT, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(dc.getWidth() / 2, 160, Graphics.FONT_MEDIUM,
+        dc.drawText(cx, 160, Graphics.FONT_MEDIUM,
                     WatchUi.loadResource(Rez.Strings.FirstScore) as Lang.String,
                     Graphics.TEXT_JUSTIFY_CENTER);
-        dc.drawText(dc.getWidth() / 2, 195, Graphics.FONT_MEDIUM,
+        dc.drawText(cx, 195, Graphics.FONT_MEDIUM,
                     WatchUi.loadResource(Rez.Strings.TomorrowMorning) as Lang.String,
                     Graphics.TEXT_JUSTIFY_CENTER);
+
+        // Mockup 02e keeps the three rings visible but empty, so the screen's
+        // structure is identical in every state and nothing jumps position
+        // when the first score arrives. A null value draws ring and caption
+        // only — no number, which is the whole point of the empty state.
+        Draw.componentDial(dc, cx - 83, 268, null, Theme.SECONDARY_TEXT, true, "Body");
+        Draw.componentDial(dc, cx,      268, null, Theme.SECONDARY_TEXT, true, "Recov.");
+        Draw.componentDial(dc, cx + 83, 268, null, Theme.SECONDARY_TEXT, true, "RHR");
     }
 
     function drawDials(dc as Graphics.Dc, record as Lang.Dictionary, current as Lang.Boolean) as Void {
@@ -1573,17 +1592,13 @@ class MorningView extends WatchUi.View {
             [ cx + 83, record[:rhr],      "RHR" ]
         ];
 
-        // Live states use the normal track; uncoloured ones use the dim
-        // track, matching the approved mockup.
-        var track = current ? Theme.TRACK : Theme.DIM_TRACK;
-
         for (var i = 0; i < dials.size(); i += 1) {
             var value = dials[i][1];
             var colour = Theme.SECONDARY_TEXT;
             if (current && value != null) {
                 colour = StatusBand.colourOf(StatusBand.of(value));
             }
-            Draw.componentDial(dc, dials[i][0], y, value, colour, track, dials[i][2]);
+            Draw.componentDial(dc, dials[i][0], y, value, colour, !current, dials[i][2]);
         }
     }
 }
@@ -1665,7 +1680,7 @@ class NowView extends WatchUi.View {
         var colour = StatusBand.colourOf(StatusBand.of(score));
 
         // Dashed: a Now Score must never be mistaken for a Morning Score.
-        Draw.scoreArc(dc, score, colour, true);
+        Draw.scoreArc(dc, score, colour, false, true);
 
         dc.setColor(colour, Graphics.COLOR_TRANSPARENT);
         dc.drawText(cx, 95, Graphics.FONT_SMALL, _stamp, Graphics.TEXT_JUSTIFY_CENTER);
