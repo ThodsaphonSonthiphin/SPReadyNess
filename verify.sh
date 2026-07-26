@@ -51,7 +51,29 @@ echo "==> Building the unit-test binary..."
 monkeyc -f "$JUNGLE" -d "$DEVICE" -o "$TEST_BIN" -y "$DEVELOPER_KEY" --unit-test
 
 echo "==> Running the unit-test suite..."
-monkeydo "$TEST_BIN" "$DEVICE" -t
+# Do not trust the exit code alone. It is not established that monkeydo
+# returns non-zero when a test fails, and under `set -e` a zero exit on a red
+# suite would let this script print "complete" over failing tests -- turning
+# "unverified" into "falsely confirmed", which is worse than no check at all.
+# So capture the output and inspect it too. If monkeydo's format differs from
+# what this grep expects, read the output above rather than trusting the line
+# below.
+TEST_OUTPUT="$(monkeydo "$TEST_BIN" "$DEVICE" -t 2>&1)" || TEST_EXIT=$?
+TEST_EXIT="${TEST_EXIT:-0}"
+echo "$TEST_OUTPUT"
+
+if [ "$TEST_EXIT" -ne 0 ]; then
+    echo ""
+    echo "ERROR: monkeydo exited $TEST_EXIT — the test suite did not pass."
+    exit 1
+fi
+if printf '%s' "$TEST_OUTPUT" | grep -qiE 'fail|error'; then
+    echo ""
+    echo "ERROR: the test output above contains a failure or error marker."
+    echo "monkeydo exited 0, so this was caught by inspecting its output."
+    exit 1
+fi
+echo "    no failure markers in the test output."
 
 echo "==> Building the app binary..."
 monkeyc -f "$JUNGLE" -d "$DEVICE" -o "$APP_BIN" -y "$DEVELOPER_KEY"
@@ -73,6 +95,14 @@ echo "     dimmed presentation, 'NO RHR - UNCHECKED' caption."
 echo "  5. Page down to the Now Score: DASHED arc (never solid), 'NOW hh:mm'"
 echo "     stamp, and a score that may legitimately differ from the morning"
 echo "     one."
-echo "  6. Background is pure black (#000000) in every state above, and in"
+echo "  6. Now Score with RHR absent: the WHOLE page greys out and the band"
+echo "     name is replaced by 'NO RHR - UNCHECKED'. This was the last defect"
+echo "     fixed before handoff and has never been rendered by anyone."
+echo "  7. The glance card: gradient bar runs red -> green with the marker at"
+echo "     the score, and greys in the stale and unchecked states. Rebuilt in"
+echo "     the same final pass as (6) and equally unrendered."
+echo "  8. Page navigation: UP on page 1 does NOT quit the app, and DOWN on"
+echo "     page 2 does NOT push a third page."
+echo "  9. Background is pure black (#000000) in every state above, and in"
 echo "     the glance."
 echo ""

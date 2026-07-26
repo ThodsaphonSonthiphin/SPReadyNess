@@ -1,6 +1,6 @@
 # SPReadyNess — handoff
 
-The app is implemented: 13 tasks, 24 Monkey C files, 8 test files. Design in
+The app is implemented: 13 tasks, 24 Monkey C files (17 source, 7 test). Design in
 [`docs/superpowers/specs/`](docs/superpowers/specs/2026-07-26-spreadyness-design.md),
 decisions in [`docs/adr/`](docs/adr/), plan in
 [`docs/superpowers/plans/`](docs/superpowers/plans/2026-07-26-spreadyness.md).
@@ -57,14 +57,26 @@ Compare against the approved mockup: [`docs/mockups/screens.html`](docs/mockups/
 ## Memory ceilings — unmeasured
 
 Garmin does not document the background-process or glance memory limits, and their
-documentation pages would not load during development. Both scopes are populated via
-`(:background)` and `(:glance)` annotations on the modules each needs.
+documentation pages would not load during development.
 
-If either scope overruns on a real build, the lever is to shrink what those scopes
-pull in — the glance currently reaches `RecordStore`, `DisplayState`, `StatusBand`
-and `Theme`. A previous attempt to add `excludeAnnotations` to `monkey.jungle` was
-reverted: it would have broken the app build, and the annotations already do the
-scoping on their own.
+**An open question sits underneath this, and it was not settled.** Ten modules carry
+`(:background)` and `(:glance)` annotations. Two reviews disagreed about what those
+annotations do on their own:
+
+- one held they are inert labels, and that only `excludeAnnotations` in
+  `monkey.jungle` makes them exclude anything;
+- the other held they are compiler scope-membership markers that place a module in a
+  scope with no jungle configuration at all.
+
+Neither could be confirmed — the documentation was unreachable all session. What *is*
+settled is that adding `base.excludeAnnotations = glance;background` to the jungle
+would have stripped ten modules the app itself needs and broken the build; that was
+reverted. The annotations were kept because they are harmless under either reading.
+
+So: the annotations are safe, but **whether they currently reduce anything is
+unknown**. If a scope overruns on a real build, resolve this question first — it
+determines whether the fix is jungle configuration or something else entirely. The
+glance's reach is `RecordStore`, `DisplayState`, `StatusBand` and `Theme`.
 
 The total `Application.Storage` budget on the FR165 is also unmeasured. 120 records
 at roughly 25 bytes is about 3 KB, and individual values cap at 32 KB, so this is
