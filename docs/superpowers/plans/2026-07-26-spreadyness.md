@@ -486,19 +486,22 @@ function noBodyBatteryMeansNoScore(logger as Test.Logger) as Lang.Boolean {
 
 (:test)
 function missingRecoveryRenormalises(logger as Test.Logger) as Lang.Boolean {
-    // weights become 50/70 and 20/70
+    // Weights become 50/70 and 20/70.
+    // (80*0.5 + 60*0.2) / 0.7 = 52 / 0.7 = 74.285... -> 74
+    // The expected value is a LITERAL. Recomputing it with the same
+    // arithmetic the implementation uses would make this test tautological:
+    // it would pass even if the formula were wrong.
     var r = Readiness.compute(80, null, 60, 0);
-    var expected = (80 * 50.0 / 70.0) + (60 * 20.0 / 70.0); // 57.14 + 17.14 = 74.28
-    Test.assertEqualMessage(r[:score], expected.toNumber(), "renormalised to 50/70 and 20/70");
+    Test.assertEqualMessage(r[:score], 74, "renormalised to 50/70 and 20/70");
     return true;
 }
 
 (:test)
 function missingRhrRenormalisesAndDisablesOverride(logger as Test.Logger) as Lang.Boolean {
-    // weights become 50/80 and 30/80; override cannot run
+    // Weights become 50/80 and 30/80; override cannot run.
+    // (80*0.5 + 60*0.3) / 0.8 = 58 / 0.8 = 72.5 -> 73 (rounds up, not 72)
     var r = Readiness.compute(80, 60, null, null);
-    var expected = (80 * 50.0 / 80.0) + (60 * 30.0 / 80.0); // 50 + 22.5 = 72.5
-    Test.assertEqualMessage(r[:score], expected.toNumber(), "renormalised to 50/80 and 30/80");
+    Test.assertEqualMessage(r[:score], 73, "renormalised to 50/80 and 30/80");
     Test.assertEqualMessage(r[:rhrChecked], false, "override could not run");
     Test.assertEqualMessage(r[:overrideFired], false, "override did not fire");
     return true;
@@ -566,7 +569,12 @@ module Readiness {
         if (recovery != null) { sum += recovery * wRecovery; }
         if (rhr != null)      { sum += rhr * wRhr; }
 
-        var score = (sum / total).toNumber();
+        // Round, do not truncate. Monkey C's .toNumber() truncates toward
+        // zero, which would turn the spec's 83.7 into 83 and bias every
+        // score down by up to a point — worst exactly at a band boundary,
+        // where 79.9 would read READY instead of GO HARD. All scores are
+        // non-negative, so +0.5 then truncate is exact rounding here.
+        var score = (sum / total + 0.5).toNumber();
 
         // The override is a tripwire, not a slider (ADR 0004). It can only
         // lower a score, and only when RHR was actually measured (ADR 0005).
