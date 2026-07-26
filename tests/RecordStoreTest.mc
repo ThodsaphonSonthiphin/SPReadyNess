@@ -55,3 +55,20 @@ function sameDayReplacesRatherThanDuplicates(logger as Test.Logger) as Lang.Bool
     Test.assertEqualMessage(RecordStore.latest()[:score], 60, "later write wins");
     return true;
 }
+
+(:test)
+function outOfOrderWriteLandsInDayOrder(logger as Test.Logger) as Lang.Boolean {
+    // ADR 0006 accepts a timezone crossing moving the local date backward.
+    // An earlier day written after a later one must still sort into place,
+    // or latest() would return the older record as current.
+    RecordStore.clear();
+    RecordStore.put(makeTestRecord(20260726, 84));
+    RecordStore.put(makeTestRecord(20260724, 50));
+    var all = RecordStore.all();
+    Test.assertEqualMessage(all.size(), 2, "both records kept");
+    Test.assertEqualMessage(all[0][:day], 20260724, "oldest first");
+    Test.assertEqualMessage(all[1][:day], 20260726, "newest last");
+    Test.assertEqualMessage(RecordStore.latest()[:day], 20260726,
+        "latest is the newest DAY, not the newest WRITE");
+    return true;
+}
