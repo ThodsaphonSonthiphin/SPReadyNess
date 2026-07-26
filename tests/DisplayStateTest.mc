@@ -6,6 +6,7 @@ function noRecordEverIsEmpty(logger as Test.Logger) as Lang.Boolean {
     // ADR 0015: distinct from stale — there is no number to dim
     var state = DisplayState.forRecord(null, 20260726);
     Test.assertEqualMessage(state[:kind], DisplayState.EMPTY, "empty, not stale");
+    Test.assertEqualMessage(state[:ageDays], null, "empty has no age to report");
     return true;
 }
 
@@ -14,6 +15,7 @@ function todaysRecordIsCurrent(logger as Test.Logger) as Lang.Boolean {
     var record = DailyRecord.make(20260726, 84, 88, 73, 89, false);
     var state = DisplayState.forRecord(record, 20260726);
     Test.assertEqualMessage(state[:kind], DisplayState.CURRENT, "today is current");
+    Test.assertEqualMessage(state[:ageDays], 0, "today is zero days old");
     return true;
 }
 
@@ -50,5 +52,6 @@ function todaysRecordWithoutRhrIsUnchecked(logger as Test.Logger) as Lang.Boolea
     var record = DailyRecord.make(20260726, 72, 80, 60, null, false);
     var state = DisplayState.forRecord(record, 20260726);
     Test.assertEqualMessage(state[:kind], DisplayState.UNCHECKED, "no rhr = unchecked");
+    Test.assertEqualMessage(state[:ageDays], 0, "unchecked is still today");
     return true;
 }
