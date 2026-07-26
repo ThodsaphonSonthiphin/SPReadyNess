@@ -1294,9 +1294,16 @@ module DisplayState {
     // treated a month as 30 days, which made 1 March against 28 February
     // read as 3 days instead of 1 — a visible lie on the stale caption, and
     // wrong across every month boundary and every leap year.
+    //
+    // Rounds to the nearest day rather than truncating. Whether
+    // Gregorian.moment resolves its fields as UTC or device-local is not
+    // documented; if local, a DST transition inside the interval makes
+    // elapsed 23 or 25 hours instead of a clean multiple of 86400, and
+    // truncation would silently drop a whole day from the caption. Rounding
+    // absorbs a shift of up to 12 hours, far beyond any DST step in use.
     function ageInDays(recordDay as Lang.Number, todayKey as Lang.Number) as Lang.Number {
         var elapsed = momentFor(todayKey).subtract(momentFor(recordDay));
-        return (elapsed.value() / SECONDS_PER_DAY).toNumber();
+        return ((elapsed.value() + SECONDS_PER_DAY / 2) / SECONDS_PER_DAY).toNumber();
     }
 
     function forRecord(record as Lang.Dictionary?, todayKey as Lang.Number) as Lang.Dictionary {
