@@ -35,9 +35,8 @@ class SPReadyNessApp extends Application.AppBase {
     }
 
     function getInitialView() as Lang.Array<WatchUi.Views or WatchUi.InputDelegates>? {
-        // Placeholder until Task 13 swaps in MorningView + PageDelegate.
-        // Keeping a real View here means the tree compiles at every commit.
-        return [ new WatchUi.View() ] as Lang.Array<WatchUi.Views>;
+        return [ new MorningView(), new PageDelegate() ]
+            as Lang.Array<WatchUi.Views or WatchUi.InputDelegates>;
     }
 
     function getGlanceView() as Lang.Array<WatchUi.GlanceView>? {
