@@ -85,7 +85,7 @@ module Capture {
             return runWith(
                 Sensors.bodyBatteryAtWake(),
                 Sensors.recoveryHours(),
-                Sensors.rhr(),
+                Sensors.todaysRhr(),
                 Sensors.rhrBaseline(),
                 dayKey
             );

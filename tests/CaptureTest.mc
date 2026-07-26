@@ -63,3 +63,10 @@ function overrideIsRecordedOnTheRecord(logger as Test.Logger) as Lang.Boolean {
     Test.assertEqualMessage(record[:overrideFired], true, "flag persisted");
     return true;
 }
+
+(:test)
+function buildRecordCarriesRawRhrBpm(logger as Test.Logger) as Lang.Boolean {
+    var record = Capture.buildRecord(88, 24, 52, 50, 20260726);
+    Test.assertEqualMessage(record[:rhrBpm], 52, "buildRecord threads the raw rhr reading onto the record");
+    return true;
+}
