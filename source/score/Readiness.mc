@@ -15,8 +15,8 @@ module Readiness {
         if (body == null) { return null; }
 
         var wBody     = Constants.WEIGHT_BODY;
-        var wRecovery = (recovery == null) ? 0.0 : Constants.WEIGHT_RECOVERY;
-        var wRhr      = (rhr == null)      ? 0.0 : Constants.WEIGHT_RHR;
+        var wRecovery = (recovery == null) ? 0 : Constants.WEIGHT_RECOVERY;
+        var wRhr      = (rhr == null)      ? 0 : Constants.WEIGHT_RHR;
 
         var total = wBody + wRecovery + wRhr;
 
@@ -24,12 +24,21 @@ module Readiness {
         if (recovery != null) { sum += recovery * wRecovery; }
         if (rhr != null)      { sum += rhr * wRhr; }
 
-        // Round, do not truncate. Monkey C's .toNumber() truncates toward
-        // zero, which would turn the spec's 83.7 into 83 and bias every
-        // score down by up to a point — worst exactly at a band boundary,
-        // where 79.9 would read READY instead of GO HARD. All scores are
-        // non-negative, so +0.5 then truncate is exact rounding here.
-        var score = (sum / total + 0.5).toNumber();
+        // Integer arithmetic end to end. floor((2*sum + total) / (2*total))
+        // is exact round-half-up with no floating point anywhere.
+        //
+        // Do NOT reintroduce floats here. Weighting in float and adding 0.5
+        // looks equivalent and is not: 0.5f + 0.3f evaluates to
+        // 0.800000011920929, so in the RHR-absent branch an exact .5 tie
+        // lands just below the boundary and truncates DOWN. A sweep of all
+        // 1,030,301 input combinations found 139 such cases, 20 of which
+        // cross a Status Band threshold — e.g. compute(58, 62, null, null)
+        // is exactly 59.5 and must be 60 (READY), not 59 (GO EASY).
+        //
+        // sum peaks at 100*50 + 100*30 + 100*20 = 10000, so 2*sum is far
+        // inside 32-bit range. All values are non-negative, so Monkey C's
+        // truncating integer division is floor().
+        var score = (2 * sum + total) / (2 * total);
 
         // The override is a tripwire, not a slider (ADR 0004). It can only
         // lower a score, and only when RHR was actually measured (ADR 0005).

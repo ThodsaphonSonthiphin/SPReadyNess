@@ -1,10 +1,13 @@
 using Toybox.Lang;
 
 module Constants {
-    // Score weights — exact fractions, never rounded percentages (ADR 0004/0005)
-    const WEIGHT_BODY     = 0.50;
-    const WEIGHT_RECOVERY = 0.30;
-    const WEIGHT_RHR      = 0.20;
+    // Score weights as INTEGER numerators over their runtime sum — exact
+    // fractions, never rounded percentages (ADR 0004/0005), and never floats.
+    // 0.5f + 0.3f is 0.800000011920929, not 0.8, which pushes exact .5 ties
+    // below the boundary and rounds them down. Integers have no such error.
+    const WEIGHT_BODY     = 50;
+    const WEIGHT_RECOVERY = 30;
+    const WEIGHT_RHR      = 20;
 
     // Component normalisation (ADR 0004) — plausibility-chosen, to be tuned
     const RECOVERY_FULL_HOURS = 48;

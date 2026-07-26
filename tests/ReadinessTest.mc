@@ -63,5 +63,24 @@ function overrideNeverRaisesAScore(logger as Test.Logger) as Lang.Boolean {
     // A cap is a ceiling, not an assignment
     var r = Readiness.compute(20, 20, 20, 8);
     Test.assertMessage(r[:score] < 59, "already below the ceiling, unchanged");
+    Test.assertEqualMessage(r[:overrideFired], false, "a cap that cannot lower must not report firing");
+    return true;
+}
+
+(:test)
+function exactHalfTieRoundsUp(logger as Test.Logger) as Lang.Boolean {
+    // (58*50 + 62*30) / 80 = 4760/80 = exactly 59.5 -> 60, NOT 59.
+    // 60 is READY; 59 is GO EASY. Float weighting got this wrong.
+    var r = Readiness.compute(58, 62, null, null);
+    Test.assertEqualMessage(r[:score], 60, "exact .5 tie rounds up, crossing a band boundary");
+    return true;
+}
+
+(:test)
+function onlyBodyBatteryStillScores(logger as Test.Logger) as Lang.Boolean {
+    // total = 50; the score is just Body Battery
+    var r = Readiness.compute(77, null, null, null);
+    Test.assertEqualMessage(r[:score], 77, "body battery alone");
+    Test.assertEqualMessage(r[:rhrChecked], false, "no rhr to check");
     return true;
 }
