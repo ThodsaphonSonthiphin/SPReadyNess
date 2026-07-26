@@ -10,6 +10,7 @@ module Draw {
         dc as Graphics.Dc,
         score as Lang.Number,
         colour as Lang.Number,
+        dimmed as Lang.Boolean,
         dashed as Lang.Boolean
     ) as Void {
         var cx = dc.getWidth() / 2;
@@ -17,7 +18,9 @@ module Draw {
 
         dc.setPenWidth(Theme.ARC_WIDTH);
 
-        dc.setColor(Theme.TRACK, Graphics.COLOR_TRANSPARENT);
+        // The track dims with the state. A score the app cannot vouch for
+        // recedes entirely, ring included — matching mockup screens 02s/02e.
+        dc.setColor(dimmed ? Theme.DIM_TRACK : Theme.TRACK, Graphics.COLOR_TRANSPARENT);
         dc.drawArc(cx, cy, Theme.ARC_RADIUS, Graphics.ARC_CLOCKWISE,
                    Theme.ARC_START_DEGREES,
                    Theme.ARC_START_DEGREES - Theme.ARC_SWEEP_DEGREES);
@@ -48,14 +51,16 @@ module Draw {
         y as Lang.Number,
         value as Lang.Number?,
         colour as Lang.Number,
-        trackColour as Lang.Number,
+        dimmed as Lang.Boolean,
         caption as Lang.String
     ) as Void {
         dc.setPenWidth(Theme.DIAL_WIDTH);
 
-        // The caller chooses the track: Theme.TRACK in live states,
-        // Theme.DIM_TRACK in the uncoloured and empty ones.
-        dc.setColor(trackColour, Graphics.COLOR_TRANSPARENT);
+        // `dimmed` is a Boolean rather than a second colour parameter on
+        // purpose. Two adjacent Lang.Number colours can be transposed at a
+        // call site with no compile or runtime error, rendering wrongly and
+        // silently; a Boolean cannot be confused with a colour int.
+        dc.setColor(dimmed ? Theme.DIM_TRACK : Theme.TRACK, Graphics.COLOR_TRANSPARENT);
         dc.drawCircle(x, y, Theme.DIAL_RADIUS);
 
         // Guard the degenerate arc exactly as scoreArc does. A start angle
@@ -73,7 +78,11 @@ module Draw {
         // A Component Score of 0 still shows its number — only the ring fill
         // is suppressed. Absent (null) shows neither.
         if (value != null) {
-            dc.setColor(Theme.PRIMARY_TEXT, Graphics.COLOR_TRANSPARENT);
+            // The number dims with the state as well. A stale score whose
+            // dial figures stayed full white would read as live at a glance,
+            // which is exactly what the uncoloured state exists to prevent.
+            dc.setColor(dimmed ? Theme.SECONDARY_TEXT : Theme.PRIMARY_TEXT,
+                        Graphics.COLOR_TRANSPARENT);
             dc.drawText(x, y - 14, Graphics.FONT_SMALL, value.toString(),
                         Graphics.TEXT_JUSTIFY_CENTER);
         }

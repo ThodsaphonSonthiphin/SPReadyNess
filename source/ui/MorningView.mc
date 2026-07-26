@@ -32,7 +32,7 @@ class MorningView extends WatchUi.View {
             ? StatusBand.nameOf(StatusBand.of(record[:score]))
             : captionFor(state);
 
-        Draw.scoreArc(dc, record[:score], colour, false);
+        Draw.scoreArc(dc, record[:score], colour, !current, false);
 
         dc.setColor(colour, Graphics.COLOR_TRANSPARENT);
         dc.drawText(dc.getWidth() / 2, 100, Graphics.FONT_MEDIUM, caption,
@@ -67,14 +67,24 @@ class MorningView extends WatchUi.View {
     // ADR 0015: no number at all. A zero would be a legitimate REST morning,
     // and the two must never look alike.
     function drawEmpty(dc as Graphics.Dc) as Void {
-        Draw.scoreArc(dc, 0, Theme.TRACK, false);
+        var cx = dc.getWidth() / 2;
+
+        Draw.scoreArc(dc, 0, Theme.TRACK, true, false);
         dc.setColor(Theme.SECONDARY_TEXT, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(dc.getWidth() / 2, 160, Graphics.FONT_MEDIUM,
+        dc.drawText(cx, 160, Graphics.FONT_MEDIUM,
                     WatchUi.loadResource(Rez.Strings.FirstScore) as Lang.String,
                     Graphics.TEXT_JUSTIFY_CENTER);
-        dc.drawText(dc.getWidth() / 2, 195, Graphics.FONT_MEDIUM,
+        dc.drawText(cx, 195, Graphics.FONT_MEDIUM,
                     WatchUi.loadResource(Rez.Strings.TomorrowMorning) as Lang.String,
                     Graphics.TEXT_JUSTIFY_CENTER);
+
+        // Mockup 02e keeps the three rings visible but empty, so the screen's
+        // structure is identical in every state and nothing jumps position
+        // when the first score arrives. A null value draws ring and caption
+        // only — no number, which is the whole point of the empty state.
+        Draw.componentDial(dc, cx - 83, 268, null, Theme.SECONDARY_TEXT, true, "Body");
+        Draw.componentDial(dc, cx,      268, null, Theme.SECONDARY_TEXT, true, "Recov.");
+        Draw.componentDial(dc, cx + 83, 268, null, Theme.SECONDARY_TEXT, true, "RHR");
     }
 
     function drawDials(dc as Graphics.Dc, record as Lang.Dictionary, current as Lang.Boolean) as Void {
@@ -86,22 +96,17 @@ class MorningView extends WatchUi.View {
             [ cx + 83, record[:rhr],      "RHR" ]
         ];
 
-        // Live states use the normal track; uncoloured ones use the dim
-        // track, matching the approved mockup.
-        var track = current ? Theme.TRACK : Theme.DIM_TRACK;
-
         for (var i = 0; i < dials.size(); i += 1) {
             var value = dials[i][1];
             var colour = Theme.SECONDARY_TEXT;
             if (current && value != null) {
                 colour = StatusBand.colourOf(StatusBand.of(value));
             }
-            // Draw.componentDial(dc, x, y, value, colour, trackColour, caption) —
-            // colour and trackColour are adjacent Lang.Number args; verified
-            // against the signature in source/ui/Draw.mc:45-53 before writing
-            // this call. Argument order here: dc, x, y, value, colour, track,
-            // caption — matches exactly.
-            Draw.componentDial(dc, dials[i][0], y, value, colour, track, dials[i][2]);
+            // Draw.componentDial(dc, x, y, value, colour, dimmed, caption) —
+            // verified against the signature in source/ui/Draw.mc. `dimmed`
+            // is a Boolean (not a second colour int), so there is no
+            // transposition risk with `colour` at this call site.
+            Draw.componentDial(dc, dials[i][0], y, value, colour, !current, dials[i][2]);
         }
     }
 }
