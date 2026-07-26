@@ -255,14 +255,23 @@ git commit -m "feat: persist raw RHR bpm through the Storage boundary, null-safe
 
 ### Task 3: `Sensors.todaysRhr()` replaces `Sensors.rhr()`, wired into `Capture`
 
+**Sequencing note (found during execution, 2026-07-26):** the plan originally
+had this task delete `Sensors.rhr()` outright. That breaks the build between
+Task 3 and Task 4, since `NowView.mc` still calls `Sensors.rhr()` until Task
+4 updates it — a task's deliverable must leave the codebase building and
+testing green on its own. **`rhr()` is deleted in Task 4 instead**, where its
+last caller is actually removed. This task ADDS `todaysRhr()` alongside the
+still-present `rhr()`, wires `Capture` to the new function, and leaves
+`rhr()` in place (temporarily unused by `Capture`, still used by `NowView`).
+
 **Files:**
-- Modify: `source/capture/Sensors.mc` (remove `rhr()`, add `todaysRhr()`)
+- Modify: `source/capture/Sensors.mc` (add `todaysRhr()`; do NOT remove `rhr()` — Task 4 does that)
 - Modify: `source/capture/Capture.mc:84-90` (`run()`'s call site)
 - Test: `tests/CaptureTest.mc`
 
 **Interfaces:**
 - Consumes: `SensorHistory.getHeartRateHistory({:order => ...}) as SensorHistory.SensorHistoryIterator?` (API 2.1.0+, confirmed available at this device's API level).
-- Produces: `Sensors.todaysRhr() as Lang.Number?` — minimum bpm sample among whatever heart-rate history the buffer holds at or before `profile.wakeTime`. Replaces `Sensors.rhr()`, which is deleted (its only two callers, here and `NowView.mc`, are both updated in this plan — Task 4 handles `NowView`).
+- Produces: `Sensors.todaysRhr() as Lang.Number?` — minimum bpm sample among whatever heart-rate history the buffer holds at or before `profile.wakeTime`. `Sensors.rhr()` still exists after this task (still called by `NowView.mc`) — Task 4 removes it once it updates `NowView.mc` to stop calling it, which is this function's only remaining caller at that point.
 - **No unit test exists for `Sensors.todaysRhr()` itself** — it needs real `SensorHistory` data, and every other function in `Sensors.mc` (`bodyBatteryAtWake`, `bodyBatteryNow`, `recoveryHours`, `rhrBaseline`) is untested for the same reason (HANDOFF.md: "the entire sensor-read path... cannot be tested without hardware"). This task's testable deliverable is `Capture.buildRecord`'s wiring (below) plus a clean app build.
 
 - [ ] **Step 1: Write the failing test**
@@ -299,20 +308,9 @@ In `source/capture/Capture.mc`, `buildRecord` must end with `rhrValue` passed as
         );
 ```
 
-- [ ] **Step 4: Replace `Sensors.rhr()` with `Sensors.todaysRhr()`**
+- [ ] **Step 4: Add `Sensors.todaysRhr()` alongside the existing `Sensors.rhr()`**
 
-In `source/capture/Sensors.mc`, remove:
-
-```monkeyc
-    function rhr() as Lang.Number? {
-        var profile = UserProfile.getProfile();
-        if (profile == null) { return null; }
-        if (!(profile has :restingHeartRate)) { return null; }
-        return profile.restingHeartRate;
-    }
-```
-
-Replace with:
+In `source/capture/Sensors.mc`, leave the existing `rhr()` function exactly as it is (`NowView.mc` still calls it until Task 4) — add `todaysRhr()` as a new function next to it:
 
 ```monkeyc
     // ADR 0016: Profile.restingHeartRate is a user-configured setting that
@@ -414,6 +412,12 @@ git commit -m "feat: derive today's RHR from heart-rate history instead of the u
 **Files:**
 - Modify: `source/ui/NowView.mc:25-41` (`onShow()`)
 - Modify: `verify.sh` (extend the printed manual-verification checklist)
+- Modify: `source/capture/Sensors.mc` (delete `rhr()` — this task removes its last caller)
+
+**Sequencing note:** Task 3 deliberately left `Sensors.rhr()` in place because
+deleting it there would have broken the build (it was still `NowView`'s only
+RHR source at that point). This task's Step 1 removes that last caller, so
+Step 2 below deletes `rhr()` here instead.
 
 **Interfaces:**
 - Consumes: `RecordStore.latest() as Lang.Dictionary?`, `DailyRecord.today() as Lang.Number` (both already used elsewhere in the app, e.g. `MorningView.mc:15`, confirmed reachable from this same unannotated default scope), `Sensors.rhrBaseline() as Lang.Number?` (unchanged).
@@ -471,17 +475,30 @@ with:
     }
 ```
 
-- [ ] **Step 2: Run the full test suite to confirm nothing else broke**
+- [ ] **Step 2: Delete `Sensors.rhr()` — its last caller is now gone**
+
+In `source/capture/Sensors.mc`, `Capture.mc` already switched to `todaysRhr()` in Task 3, and Step 1 above just removed `NowView.mc`'s call — `rhr()` now has zero callers anywhere. Remove it entirely:
+
+```monkeyc
+    function rhr() as Lang.Number? {
+        var profile = UserProfile.getProfile();
+        if (profile == null) { return null; }
+        if (!(profile has :restingHeartRate)) { return null; }
+        return profile.restingHeartRate;
+    }
+```
+
+- [ ] **Step 3: Run the full test suite to confirm nothing else broke**
 
 Run: `monkeyc -f monkey.jungle -d fr165 -o bin/test.prg -y developer_key.der --unit-test && monkeydo bin/test.prg fr165 -t`
 Expected: `PASSED (passed=38, failed=0, errors=0)` (unchanged from Task 3 — `NowView` has no tests to add to this count).
 
-- [ ] **Step 3: Build the app binary**
+- [ ] **Step 4: Build the app binary**
 
 Run: `monkeyc -f monkey.jungle -d fr165 -o bin/spreadyness.prg -y developer_key.der`
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 4: Extend `verify.sh`'s manual-verification checklist**
+- [ ] **Step 5: Extend `verify.sh`'s manual-verification checklist**
 
 In `verify.sh`, the script ends by printing a numbered checklist of things that need a human eye in the simulator/real device. Add one more item to that list (after the existing item 9, "Background is pure black..."):
 
@@ -493,9 +510,13 @@ echo "      stale SensorHistory buffer would silently break."
 echo ""
 ```
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add source/ui/NowView.mc verify.sh
-git commit -m "fix: NowView reuses today's stored RHR instead of re-deriving it live (ADR 0018)"
+git add source/ui/NowView.mc source/capture/Sensors.mc verify.sh
+git commit -m "fix: NowView reuses today's stored RHR instead of re-deriving it live (ADR 0018)
+
+Also removes Sensors.rhr(), whose last caller this replaces (Task 3
+already switched Capture.mc to todaysRhr(); rhr() was kept alive
+temporarily so the build stayed green between tasks)."
 ```
