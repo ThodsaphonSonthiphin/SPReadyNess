@@ -43,9 +43,15 @@ never carries advice the app could not actually check.
 
 ## Consequences
 
-- With Recovery absent, weights renormalise to Body Battery 71% / RHR 29%.
-- With RHR absent, they renormalise to Body Battery 63% / Recovery 37%, **and** the
-  override does not run, so the score is shown uncoloured.
+- Renormalisation divides each surviving weight by their sum. Stated exactly, to
+  avoid a rounded percentage being reimplemented two different ways:
+
+  | Absent | Surviving weights |
+  |---|---|
+  | Recovery | Body Battery `50/70`, RHR `20/70` |
+  | RHR | Body Battery `50/80`, Recovery `30/80` |
+
+- With RHR absent the override also does not run, so the score is shown uncoloured.
 - With Body Battery absent, **no Daily Record is written** and the day is a gap in
   the history screens. The app should say why — an unworn watch is a user-fixable
   cause, and silence would read as a bug.
