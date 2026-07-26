@@ -1,0 +1,441 @@
+<title>SPReadyNess — screen mockups</title>
+<style>
+  :root{
+    --ink:#0E1113; --surface:#15191C; --raised:#1C2226;
+    --line:#272E33; --text:#E8EDF0; --muted:#8A9299;
+    --go-hard:#00E676; --ready:#C6D62B; --go-easy:#FF9500; --rest:#FF3B30;
+    --track:#3A3A3C;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:light){
+    :root{ --ink:#F2F4F5; --surface:#FFFFFF; --raised:#FAFBFB;
+           --line:#DDE3E6; --text:#14181B; --muted:#5C666D; }
+  }
+  :root[data-theme="light"]{ --ink:#F2F4F5; --surface:#FFFFFF; --raised:#FAFBFB;
+           --line:#DDE3E6; --text:#14181B; --muted:#5C666D; }
+  :root[data-theme="dark"]{ --ink:#0E1113; --surface:#15191C; --raised:#1C2226;
+           --line:#272E33; --text:#E8EDF0; --muted:#8A9299; }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:var(--sans);
+       line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:48px 24px 80px}
+
+  header{border-bottom:1px solid var(--line);padding-bottom:28px;margin-bottom:36px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+           text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+  h1{font-size:clamp(28px,4vw,40px);line-height:1.1;margin:0 0 12px;
+     letter-spacing:-.02em;text-wrap:balance;font-weight:650}
+  .lede{margin:0;color:var(--muted);max-width:62ch}
+
+  .specs{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+  .spec{font-family:var(--mono);font-size:11.5px;color:var(--muted);
+        border:1px solid var(--line);border-radius:3px;padding:4px 9px;
+        background:var(--surface)}
+
+  .legend{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 36px}
+  .band{display:flex;align-items:center;gap:8px;font-family:var(--mono);
+        font-size:12px;border:1px solid var(--line);background:var(--surface);
+        border-radius:3px;padding:6px 11px}
+  .sw{width:11px;height:11px;border-radius:2px;flex:none}
+
+  .sect{display:flex;align-items:center;gap:12px;margin:0 0 20px}
+  .sect h2{font-size:13px;font-family:var(--mono);letter-spacing:.1em;
+           text-transform:uppercase;margin:0;font-weight:600}
+  .sect .rule{height:1px;background:var(--line);flex:1}
+  .sect .tag{font-family:var(--mono);font-size:11px;padding:3px 8px;
+             border-radius:3px;border:1px solid var(--line);color:var(--muted)}
+  .tag.ship{color:var(--go-hard);border-color:var(--go-hard)}
+
+  .grid{display:grid;gap:28px;
+        grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:8px;
+        padding:24px;display:flex;flex-direction:column;gap:16px}
+  .card-head{display:flex;align-items:baseline;gap:10px}
+  .num{font-family:var(--mono);font-size:11px;color:var(--muted);
+       border:1px solid var(--line);border-radius:2px;padding:2px 6px;flex:none}
+  .card h3{font-size:16px;margin:0;font-weight:620;letter-spacing:-.01em}
+  .card p{margin:0;font-size:13.5px;color:var(--muted)}
+  .screen{width:100%;max-width:320px;aspect-ratio:1;margin:0 auto;
+          border-radius:50%;background:#000;display:block;
+          box-shadow:0 0 0 7px #23282b,0 0 0 8px #34393c}
+
+  .deferred{margin-top:56px}
+  .deferred .card{opacity:.42;filter:saturate(.5)}
+  .deferred .card:hover,.deferred .card:focus-within{opacity:1;filter:none}
+  .deferred .card{transition:opacity .18s ease,filter .18s ease}
+  @media (prefers-reduced-motion:reduce){ .deferred .card{transition:none} }
+
+  .note{font-family:var(--mono);font-size:11.5px;color:var(--muted);
+        border-left:2px solid var(--go-hard);padding-left:10px}
+  .note.warn{border-left-color:var(--go-easy)}
+  .note.off{border-left-color:var(--muted)}
+
+  .callout{margin:48px 0 0;background:var(--raised);border:1px solid var(--line);
+           border-radius:8px;padding:24px 26px}
+  .callout h2{margin:0 0 12px;font-size:17px;letter-spacing:-.01em}
+  .callout ul{margin:0;padding-left:20px;color:var(--muted);font-size:14px}
+  .callout li{margin-bottom:8px}
+  .callout li:last-child{margin-bottom:0}
+  strong{color:var(--text);font-weight:600}
+  code{font-family:var(--mono);font-size:.9em;background:var(--ink);
+       border:1px solid var(--line);border-radius:3px;padding:1px 5px}
+  text{font-family:ui-monospace,Menlo,monospace}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">SPReadyNess · design mockup · rev 4</p>
+  <h1>Three screens ship. Three are deferred.</h1>
+  <p class="lede">Rendered from <code>docs/design-baseline.md</code> and ADRs 0001–0014.
+     Every number satisfies the agreed formula — this is the design under test, not an
+     illustration.</p>
+  <div class="specs">
+    <span class="spec">Forerunner 165</span>
+    <span class="spec">390 × 390 round AMOLED</span>
+    <span class="spec">Connect IQ API 5.2</span>
+    <span class="spec">watch app + GlanceView</span>
+  </div>
+</header>
+
+<div class="legend">
+  <span class="band"><i class="sw" style="background:var(--go-hard)"></i>GO HARD 80–100</span>
+  <span class="band"><i class="sw" style="background:var(--ready)"></i>READY 60–79</span>
+  <span class="band"><i class="sw" style="background:var(--go-easy)"></i>GO EASY 40–59</span>
+  <span class="band"><i class="sw" style="background:var(--rest)"></i>REST 0–39</span>
+</div>
+
+<div class="sect"><h2>Shipping in v1</h2><span class="tag ship">3 screens</span><span class="rule"></span></div>
+
+<div class="grid">
+
+  <!-- 1 · GLANCE -->
+  <div class="card">
+    <div class="card-head"><span class="num">01</span><h3>Glance card</h3></div>
+    <svg class="screen" viewBox="0 0 390 390" role="img" aria-label="Glance card showing readiness 84, Go Hard">
+      <text x="195" y="150" fill="#fff" font-size="30" text-anchor="middle">Readiness</text>
+      <text x="128" y="205" fill="#00E676" font-size="34" text-anchor="middle">Go Hard</text>
+      <text x="290" y="208" fill="#00E676" font-size="46" text-anchor="middle">84</text>
+      <defs>
+        <linearGradient id="bar" x1="0" x2="1">
+          <stop offset="0" stop-color="#FF3B30"/><stop offset=".38" stop-color="#FF9500"/>
+          <stop offset=".68" stop-color="#C6D62B"/><stop offset="1" stop-color="#00E676"/>
+        </linearGradient>
+      </defs>
+      <rect x="85" y="232" width="220" height="17" rx="3" fill="url(#bar)"/>
+      <rect x="270" y="227" width="4" height="27" fill="#fff"/>
+    </svg>
+    <p>The swipe-up summary. Always shows the <strong>Morning Score</strong> — never the
+       Now Score, since a glance is passive and nobody asked it a question.</p>
+    <div class="note">Marker sits at 84 along a continuous red→green bar.</div>
+  </div>
+
+  <!-- 2 · MORNING -->
+  <div class="card">
+    <div class="card-head"><span class="num">02</span><h3>Morning Score</h3></div>
+    <svg class="screen" viewBox="0 0 390 390" role="img" aria-label="Morning score 84, Go Hard, three component dials">
+      <circle cx="195" cy="195" r="150" fill="none" stroke="#3A3A3C" stroke-width="13"
+              stroke-linecap="round" stroke-dasharray="706.9 942.5" transform="rotate(135 195 195)"/>
+      <circle cx="195" cy="195" r="150" fill="none" stroke="#00E676" stroke-width="13"
+              stroke-linecap="round" stroke-dasharray="593.8 942.5" transform="rotate(135 195 195)"/>
+      <text x="195" y="128" fill="#00E676" font-size="30" text-anchor="middle">GO HARD</text>
+      <text x="195" y="205" fill="#fff" font-size="76" text-anchor="middle">84</text>
+      <g>
+        <circle cx="112" cy="268" r="31" fill="none" stroke="#3A3A3C" stroke-width="7"/>
+        <circle cx="112" cy="268" r="31" fill="none" stroke="#00E676" stroke-width="7"
+                stroke-linecap="round" stroke-dasharray="171.4 194.8" transform="rotate(-90 112 268)"/>
+        <text x="112" y="277" fill="#fff" font-size="25" text-anchor="middle">88</text>
+        <text x="112" y="322" fill="#9E9E9E" font-size="19" text-anchor="middle">Body</text>
+      </g>
+      <g>
+        <circle cx="195" cy="268" r="31" fill="none" stroke="#3A3A3C" stroke-width="7"/>
+        <circle cx="195" cy="268" r="31" fill="none" stroke="#C6D62B" stroke-width="7"
+                stroke-linecap="round" stroke-dasharray="142.2 194.8" transform="rotate(-90 195 268)"/>
+        <text x="195" y="277" fill="#fff" font-size="25" text-anchor="middle">73</text>
+        <text x="195" y="322" fill="#9E9E9E" font-size="19" text-anchor="middle">Recov.</text>
+      </g>
+      <g>
+        <circle cx="278" cy="268" r="31" fill="none" stroke="#3A3A3C" stroke-width="7"/>
+        <circle cx="278" cy="268" r="31" fill="none" stroke="#00E676" stroke-width="7"
+                stroke-linecap="round" stroke-dasharray="173.4 194.8" transform="rotate(-90 278 268)"/>
+        <text x="278" y="277" fill="#fff" font-size="25" text-anchor="middle">89</text>
+        <text x="278" y="322" fill="#9E9E9E" font-size="19" text-anchor="middle">RHR</text>
+      </g>
+    </svg>
+    <p>Captured once at wake and frozen. Three dials in a row, not the reference's
+       2×2 — SpO2 was dropped in ADR 0003.</p>
+    <div class="note">0.50×88 + 0.30×73 + 0.20×89 = 83.7 → <strong>84</strong></div>
+  </div>
+
+  <!-- 3 · NOW -->
+  <div class="card">
+    <div class="card-head"><span class="num">03</span><h3>Now Score</h3></div>
+    <svg class="screen" viewBox="0 0 390 390" role="img" aria-label="Now score 68, Ready, computed at 18:04">
+      <circle cx="195" cy="195" r="150" fill="none" stroke="#3A3A3C" stroke-width="13"
+              stroke-linecap="round" stroke-dasharray="706.9 942.5" transform="rotate(135 195 195)"/>
+      <circle cx="195" cy="195" r="150" fill="none" stroke="#C6D62B" stroke-width="13"
+              stroke-linecap="round" stroke-dasharray="4 14" transform="rotate(135 195 195)"
+              stroke-dashoffset="0" opacity=".35"/>
+      <circle cx="195" cy="195" r="150" fill="none" stroke="#C6D62B" stroke-width="13"
+              stroke-linecap="round" stroke-dasharray="480.7 942.5" transform="rotate(135 195 195)"/>
+      <rect x="139" y="92" width="112" height="34" rx="17" fill="none" stroke="#C6D62B" stroke-width="2"/>
+      <text x="195" y="116" fill="#C6D62B" font-size="22" text-anchor="middle">NOW 18:04</text>
+      <text x="195" y="152" fill="#C6D62B" font-size="26" text-anchor="middle">READY</text>
+      <text x="195" y="222" fill="#fff" font-size="76" text-anchor="middle">68</text>
+      <g>
+        <circle cx="112" cy="278" r="31" fill="none" stroke="#3A3A3C" stroke-width="7"/>
+        <circle cx="112" cy="278" r="31" fill="none" stroke="#FF9500" stroke-width="7"
+                stroke-linecap="round" stroke-dasharray="87.7 194.8" transform="rotate(-90 112 278)"/>
+        <text x="112" y="287" fill="#fff" font-size="25" text-anchor="middle">45</text>
+        <text x="112" y="332" fill="#9E9E9E" font-size="19" text-anchor="middle">Body</text>
+      </g>
+      <g>
+        <circle cx="195" cy="278" r="31" fill="none" stroke="#3A3A3C" stroke-width="7"/>
+        <circle cx="195" cy="278" r="31" fill="none" stroke="#00E676" stroke-width="7"
+                stroke-linecap="round" stroke-dasharray="179.2 194.8" transform="rotate(-90 195 278)"/>
+        <text x="195" y="287" fill="#fff" font-size="25" text-anchor="middle">92</text>
+        <text x="195" y="332" fill="#9E9E9E" font-size="19" text-anchor="middle">Recov.</text>
+      </g>
+      <g>
+        <circle cx="278" cy="278" r="31" fill="none" stroke="#3A3A3C" stroke-width="7"/>
+        <circle cx="278" cy="278" r="31" fill="none" stroke="#00E676" stroke-width="7"
+                stroke-linecap="round" stroke-dasharray="173.4 194.8" transform="rotate(-90 278 278)"/>
+        <text x="278" y="287" fill="#fff" font-size="25" text-anchor="middle">89</text>
+        <text x="278" y="332" fill="#9E9E9E" font-size="19" text-anchor="middle">RHR</text>
+      </g>
+    </svg>
+    <p>Computed on demand before a session. Marked <code>NOW</code> with its time, and the
+       arc is dashed rather than solid, so it can never be mistaken for the Morning Score.</p>
+    <div class="note warn">Same day as screen 02. Morning was <strong>84</strong>; now
+       <strong>68</strong> — almost entirely Body Battery draining by the clock, not fatigue.
+       This is the tradeoff ADR 0010 accepts.</div>
+  </div>
+
+</div>
+
+<div style="margin-top:56px"></div>
+<div class="sect"><h2>When the app can't vouch for a number</h2><span class="tag">3 states</span><span class="rule"></span></div>
+<p style="margin:0 0 24px;color:var(--muted);max-width:62ch;font-size:14px">
+  Colour carries the recommendation, so a score the app cannot stand behind is shown
+  <strong>without</strong> it — stale (ADR 0009) or RHR-absent so the override never ran
+  (ADR 0005). The <strong>empty</strong> state is different again: nothing has ever been
+  captured, so there is no number to dim (ADR 0015).</p>
+
+<div class="grid">
+
+  <div class="card">
+    <div class="card-head"><span class="num">01·s</span><h3>Glance — stale</h3></div>
+    <svg class="screen" viewBox="0 0 390 390" role="img" aria-label="Stale glance card, score 84 from two days ago, shown uncoloured">
+      <text x="195" y="150" fill="#fff" font-size="30" text-anchor="middle">Readiness</text>
+      <text x="128" y="205" fill="#9E9E9E" font-size="30" text-anchor="middle">2 days ago</text>
+      <text x="290" y="208" fill="#9E9E9E" font-size="46" text-anchor="middle">84</text>
+      <rect x="85" y="232" width="220" height="17" rx="3" fill="#2A2A2C"/>
+      <rect x="270" y="227" width="4" height="27" fill="#9E9E9E"/>
+    </svg>
+    <p>Same number, same position on the bar — but grey, and captioned with its age
+       instead of its band.</p>
+    <div class="note off">The bar itself desaturates too. A red→green gradient is advice.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="num">02·s</span><h3>Morning Score — stale</h3></div>
+    <svg class="screen" viewBox="0 0 390 390" role="img" aria-label="Stale morning score 84 from two days ago, shown uncoloured">
+      <circle cx="195" cy="195" r="150" fill="none" stroke="#262628" stroke-width="13"
+              stroke-linecap="round" stroke-dasharray="706.9 942.5" transform="rotate(135 195 195)"/>
+      <circle cx="195" cy="195" r="150" fill="none" stroke="#9E9E9E" stroke-width="13"
+              stroke-linecap="round" stroke-dasharray="593.8 942.5" transform="rotate(135 195 195)"/>
+      <text x="195" y="128" fill="#9E9E9E" font-size="27" text-anchor="middle">2 DAYS AGO</text>
+      <text x="195" y="205" fill="#9E9E9E" font-size="76" text-anchor="middle">84</text>
+      <g>
+        <circle cx="112" cy="268" r="31" fill="none" stroke="#262628" stroke-width="7"/>
+        <circle cx="112" cy="268" r="31" fill="none" stroke="#6E6E6E" stroke-width="7"
+                stroke-linecap="round" stroke-dasharray="171.4 194.8" transform="rotate(-90 112 268)"/>
+        <text x="112" y="277" fill="#9E9E9E" font-size="25" text-anchor="middle">88</text>
+        <text x="112" y="322" fill="#6E6E6E" font-size="19" text-anchor="middle">Body</text>
+      </g>
+      <g>
+        <circle cx="195" cy="268" r="31" fill="none" stroke="#262628" stroke-width="7"/>
+        <circle cx="195" cy="268" r="31" fill="none" stroke="#6E6E6E" stroke-width="7"
+                stroke-linecap="round" stroke-dasharray="142.2 194.8" transform="rotate(-90 195 268)"/>
+        <text x="195" y="277" fill="#9E9E9E" font-size="25" text-anchor="middle">73</text>
+        <text x="195" y="322" fill="#6E6E6E" font-size="19" text-anchor="middle">Recov.</text>
+      </g>
+      <g>
+        <circle cx="278" cy="268" r="31" fill="none" stroke="#262628" stroke-width="7"/>
+        <circle cx="278" cy="268" r="31" fill="none" stroke="#6E6E6E" stroke-width="7"
+                stroke-linecap="round" stroke-dasharray="173.4 194.8" transform="rotate(-90 278 268)"/>
+        <text x="278" y="277" fill="#9E9E9E" font-size="25" text-anchor="middle">89</text>
+        <text x="278" y="322" fill="#6E6E6E" font-size="19" text-anchor="middle">RHR</text>
+      </g>
+    </svg>
+    <p>The band label is replaced by the age. Compare with screen 02 — identical
+       figures, no green anywhere.</p>
+    <div class="note off">For the RHR-absent case the caption reads
+       <code>NO RHR — UNCHECKED</code> instead of an age. Same grey.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="num">02·e</span><h3>Morning Score — empty</h3></div>
+    <svg class="screen" viewBox="0 0 390 390" role="img" aria-label="Empty state, no score has ever been captured">
+      <circle cx="195" cy="195" r="150" fill="none" stroke="#262628" stroke-width="13"
+              stroke-linecap="round" stroke-dasharray="706.9 942.5" transform="rotate(135 195 195)"/>
+      <text x="195" y="180" fill="#9E9E9E" font-size="27" text-anchor="middle">FIRST SCORE</text>
+      <text x="195" y="215" fill="#9E9E9E" font-size="27" text-anchor="middle">TOMORROW MORNING</text>
+      <g>
+        <circle cx="112" cy="268" r="31" fill="none" stroke="#262628" stroke-width="7"/>
+        <circle cx="195" cy="268" r="31" fill="none" stroke="#262628" stroke-width="7"/>
+        <circle cx="278" cy="268" r="31" fill="none" stroke="#262628" stroke-width="7"/>
+        <text x="112" y="322" fill="#4A4A4A" font-size="19" text-anchor="middle">Body</text>
+        <text x="195" y="322" fill="#4A4A4A" font-size="19" text-anchor="middle">Recov.</text>
+        <text x="278" y="322" fill="#4A4A4A" font-size="19" text-anchor="middle">RHR</text>
+      </g>
+    </svg>
+    <p>A fresh install that could not capture — installed at night, with the history no
+       longer reaching back to that morning's wake.</p>
+    <div class="note off"><strong>No number at all.</strong> A zero would be a legitimate
+       REST morning; these two must never look alike.</div>
+  </div>
+
+</div>
+
+<div class="deferred">
+  <div class="sect"><h2>Deferred — data still collected</h2><span class="tag">3 screens</span><span class="rule"></span></div>
+
+  <div class="grid">
+
+  <!-- 7 DAY -->
+  <div class="card">
+    <div class="card-head"><span class="num">—</span><h3>7-day</h3></div>
+    <svg class="screen" viewBox="0 0 390 390" role="img" aria-label="Deferred seven day chart">
+      <text x="195" y="88" fill="#fff" font-size="27" text-anchor="middle">Readiness</text>
+      <text x="195" y="120" fill="#fff" font-size="24" text-anchor="middle">7-Day Morning Score</text>
+      <defs>
+        <linearGradient id="fill7" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#00E676" stop-opacity=".85"/>
+          <stop offset=".55" stop-color="#C6D62B" stop-opacity=".5"/>
+          <stop offset="1" stop-color="#FF3B30" stop-opacity=".35"/>
+        </linearGradient>
+      </defs>
+      <g stroke="#2A2A2C" stroke-width="1">
+        <line x1="105" y1="160" x2="320" y2="160"/><line x1="105" y1="200" x2="320" y2="200"/>
+        <line x1="105" y1="240" x2="320" y2="240"/><line x1="105" y1="280" x2="320" y2="280"/>
+      </g>
+      <text x="92" y="166" fill="#9E9E9E" font-size="19" text-anchor="end">100</text>
+      <text x="92" y="246" fill="#9E9E9E" font-size="19" text-anchor="end">60</text>
+      <path d="M115 236 L150 210 L185 240 L185 300 L115 300 Z" fill="url(#fill7)"/>
+      <path d="M255 254 L290 224 L320 212 L320 300 L255 300 Z" fill="url(#fill7)"/>
+      <polyline points="115,236 150,210 185,240" fill="none" stroke="#fff" stroke-width="3"/>
+      <polyline points="255,254 290,224 320,212" fill="none" stroke="#fff" stroke-width="3"/>
+      <g fill="#fff">
+        <circle cx="115" cy="236" r="4"/><circle cx="150" cy="210" r="4"/>
+        <circle cx="185" cy="240" r="4"/><circle cx="255" cy="254" r="4"/>
+        <circle cx="290" cy="224" r="4"/><circle cx="320" cy="212" r="4"/>
+      </g>
+      <g fill="#9E9E9E" font-size="20" text-anchor="middle">
+        <text x="115" y="328">F</text><text x="150" y="328">S</text><text x="185" y="328">S</text>
+        <text x="220" y="328">M</text><text x="255" y="328">T</text><text x="290" y="328">W</text>
+        <text x="320" y="328">T</text>
+      </g>
+    </svg>
+    <p>Retained as the reference for whenever a trend view is added.</p>
+    <div class="note off">Line breaks across the missing Monday — the rule in ADR 0006
+       stands, simply dormant until a chart exists.</div>
+  </div>
+
+  <!-- 30 DAY -->
+  <div class="card">
+    <div class="card-head"><span class="num">—</span><h3>30-day</h3></div>
+    <svg class="screen" viewBox="0 0 390 390" role="img" aria-label="Deferred thirty day chart">
+      <text x="195" y="88" fill="#fff" font-size="27" text-anchor="middle">Readiness</text>
+      <text x="195" y="120" fill="#fff" font-size="24" text-anchor="middle">30-Day Morning Score</text>
+      <defs>
+        <linearGradient id="fill30" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#00E676" stop-opacity=".85"/>
+          <stop offset=".55" stop-color="#C6D62B" stop-opacity=".5"/>
+          <stop offset="1" stop-color="#FF3B30" stop-opacity=".35"/>
+        </linearGradient>
+      </defs>
+      <g stroke="#2A2A2C" stroke-width="1">
+        <line x1="95" y1="160" x2="325" y2="160"/><line x1="95" y1="195" x2="325" y2="195"/>
+        <line x1="95" y1="230" x2="325" y2="230"/><line x1="95" y1="265" x2="325" y2="265"/>
+      </g>
+      <path d="M100 176 L115 183 L130 197 L145 186 L160 192 L175 205 L190 199 L205 215
+               L220 208 L235 226 L250 219 L265 238 L280 231 L295 245 L310 232 L325 172
+               L325 295 L100 295 Z" fill="url(#fill30)"/>
+      <polyline points="100,176 115,183 130,197 145,186 160,192 175,205 190,199 205,215
+                        220,208 235,226 250,219 265,238 280,231 295,245 310,232 325,172"
+                fill="none" stroke="#fff" stroke-width="2.5"/>
+    </svg>
+    <p>Would have been near-empty for a month on a fresh install — the cost ADR 0007
+       accepted, now avoided entirely.</p>
+    <div class="note off">Not built. The Daily Records behind it are collected anyway.</div>
+  </div>
+
+  <!-- 8 WEEK -->
+  <div class="card">
+    <div class="card-head"><span class="num">—</span><h3>8-week</h3></div>
+    <svg class="screen" viewBox="0 0 390 390" role="img" aria-label="Deferred eight week grid">
+      <text x="195" y="86" fill="#fff" font-size="27" text-anchor="middle">Readiness</text>
+      <text x="195" y="118" fill="#fff" font-size="24" text-anchor="middle">8-Week Average</text>
+      <g fill="#9E9E9E" font-size="19" text-anchor="middle">
+        <text x="110" y="152">04/13</text><text x="167" y="152">04/06</text>
+        <text x="224" y="152">03/30</text><text x="281" y="152">03/22</text>
+      </g>
+      <g>
+        <rect x="84" y="162" width="52" height="52" rx="5" fill="#00E676"/>
+        <text x="110" y="199" fill="#fff" font-size="30" text-anchor="middle">87</text>
+        <rect x="141" y="162" width="52" height="52" rx="5" fill="#00E676"/>
+        <text x="167" y="199" fill="#fff" font-size="30" text-anchor="middle">82</text>
+        <rect x="198" y="162" width="52" height="52" rx="5" fill="#C6D62B"/>
+        <text x="224" y="199" fill="#fff" font-size="30" text-anchor="middle">78</text>
+        <rect x="255" y="162" width="52" height="52" rx="5" fill="#C6D62B"/>
+        <text x="281" y="199" fill="#fff" font-size="30" text-anchor="middle">65</text>
+      </g>
+      <g fill="#9E9E9E" font-size="19" text-anchor="middle">
+        <text x="110" y="243">03/15</text><text x="167" y="243">03/08</text>
+        <text x="224" y="243">03/01</text><text x="281" y="243">02/22</text>
+      </g>
+      <g>
+        <rect x="84" y="253" width="52" height="52" rx="5" fill="#C6D62B"/>
+        <text x="110" y="290" fill="#fff" font-size="30" text-anchor="middle">71</text>
+        <rect x="141" y="253" width="52" height="52" rx="5" fill="#FF9500"/>
+        <text x="167" y="290" fill="#fff" font-size="30" text-anchor="middle">48</text>
+        <rect x="198" y="253" width="52" height="52" rx="5" fill="#C6D62B"/>
+        <text x="224" y="290" fill="#fff" font-size="30" text-anchor="middle">62</text>
+        <rect x="255" y="253" width="52" height="52" rx="5" fill="#FF9500"/>
+        <text x="281" y="290" fill="#fff" font-size="30" text-anchor="middle">55</text>
+      </g>
+    </svg>
+    <p>Needed 56 Daily Records to fill. The store keeps 120, so it can be built later
+       and open already populated.</p>
+    <div class="note off">Not built. This is why the store was kept.</div>
+  </div>
+
+  </div>
+</div>
+
+<div class="callout">
+  <h2>What changed in rev 3 — after scrutiny</h2>
+  <ul>
+    <li><strong>The uncoloured state is now drawn</strong> (01·s, 02·s). A review found
+        ADR 0009 mandated a second visual state on every score-bearing surface that no
+        mockup had ever shown — the state most likely to ship wrong was the one nobody
+        had looked at.</li>
+    <li><strong>The dashed Now arc is now in the baseline.</strong> Rev 2 invented it here
+        without documenting it in <code>design-baseline.md</code> — exactly the mockup-vs-build
+        drift the baseline exists to prevent.</li>
+    <li><strong>Now Score reads two inputs, not three.</strong> <code>restingHeartRate</code>
+        is a daily profile value and cannot change intraday, so screens 02 and 03 necessarily
+        share an RHR of 89. The evening drop is Body Battery and Recovery alone.</li>
+    <li><strong>Capture mechanism defined</strong> — a guarded 30-minute Duration event
+        (ADR 0012), with Body Battery resolved back to <code>wakeTime</code> rather than read
+        at firing (ADR 0013), so the 50%-weighted input is not biased by how late the
+        event happened to run.</li>
+    <li><strong>Still unverified</strong> — background memory ceiling and the
+        <code>Application.Storage</code> limit. The <code>averageRestingHeartRate</code> window
+        and <code>restingHeartRate</code> freshness remain assumptions, now recorded as such
+        in ADR 0004 rather than left loose.</li>
+  </ul>
+</div>
+</div>
