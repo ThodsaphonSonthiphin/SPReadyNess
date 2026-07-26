@@ -934,7 +934,15 @@ module Sensors {
 
         var wakeMoment = Time.today().add(profile.wakeTime);
 
-        var iter = SensorHistory.getBodyBatteryHistory({});
+        // ORDER_OLDEST_FIRST is load-bearing, not stylistic. The walk below
+        // returns the FIRST sample at or after wake. Garmin's default is
+        // ORDER_NEWEST_FIRST, under which the very first sample is "now" —
+        // which trivially satisfies that test and would return the current
+        // value, collapsing this function into bodyBatteryNow() and silently
+        // destroying the at-wake resolution the whole function exists for.
+        var iter = SensorHistory.getBodyBatteryHistory({
+            :order => SensorHistory.ORDER_OLDEST_FIRST
+        });
         if (iter == null) { return null; }
 
         var oldest = iter.getOldestSampleTime();
@@ -956,7 +964,11 @@ module Sensors {
     // Reusing bodyBatteryAtWake() here would make the Now Score identical to
     // the Morning Score and defeat ADR 0010 entirely.
     function bodyBatteryNow() as Lang.Number? {
-        var iter = SensorHistory.getBodyBatteryHistory({});
+        // NEWEST_FIRST stated explicitly rather than left to the default, so
+        // the contrast with bodyBatteryAtWake is visible at both call sites.
+        var iter = SensorHistory.getBodyBatteryHistory({
+            :order => SensorHistory.ORDER_NEWEST_FIRST
+        });
         if (iter == null) { return null; }
         var newest = iter.next();
         if (newest == null || newest.data == null) { return null; }
