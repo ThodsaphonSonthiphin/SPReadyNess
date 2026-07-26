@@ -33,7 +33,8 @@ module Capture {
             cBody,
             cRecovery,
             cRhr,
-            result[:overrideFired]
+            result[:overrideFired],
+            rhrValue
         );
     }
 

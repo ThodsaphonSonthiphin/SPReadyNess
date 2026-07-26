@@ -24,7 +24,8 @@ module DailyRecord {
         body as Lang.Number,
         recovery as Lang.Number?,
         rhr as Lang.Number?,
-        overrideFired as Lang.Boolean
+        overrideFired as Lang.Boolean,
+        rhrBpm as Lang.Number?
     ) as Lang.Dictionary {
         return {
             :day => dayKey,
@@ -32,7 +33,8 @@ module DailyRecord {
             :body => body,
             :recovery => recovery,
             :rhr => rhr,
-            :overrideFired => overrideFired
+            :overrideFired => overrideFired,
+            :rhrBpm => rhrBpm
         };
     }
 }

@@ -6,7 +6,7 @@ using Toybox.Lang;
 // tagging this two-argument helper that way makes the harness call it wrong
 // and error out. Ships as inert dead code in non-test builds instead.
 function makeTestRecord(dayKey as Lang.Number, score as Lang.Number) as Lang.Dictionary {
-    return DailyRecord.make(dayKey, score, 88, 73, 89, false);
+    return DailyRecord.make(dayKey, score, 88, 73, 89, false, null);
 }
 
 (:test)
@@ -16,6 +16,13 @@ function writeThenReadBack(logger as Test.Logger) as Lang.Boolean {
     var latest = RecordStore.latest();
     Test.assertEqualMessage(latest[:score], 84, "score round-trips");
     Test.assertEqualMessage(latest[:day], 20260726, "day key round-trips");
+    return true;
+}
+
+(:test)
+function dailyRecordCarriesRawRhrBpm(logger as Test.Logger) as Lang.Boolean {
+    var record = DailyRecord.make(20260726, 84, 88, 73, 89, false, 52);
+    Test.assertEqualMessage(record[:rhrBpm], 52, "raw rhr bpm is carried on the record");
     return true;
 }
 
